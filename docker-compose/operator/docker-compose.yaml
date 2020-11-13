@@ -1,0 +1,60 @@
+version: "3.6"
+
+services:
+  operator:
+    image: polymathnet/polymesh:debian
+    user: "<non-root UID>:<non-root GID>"
+    volumes:
+      - /var/lib/polymesh:/var/lib/polymesh
+    entrypoint:
+      - /usr/local/bin/polymesh
+    command:
+      - --base-path
+      -   /var/lib/polymesh
+      #- --prometheus-external # Uncomment to allow scraping of metrics from non-localhost addresses
+      #- --unsafe-rpc-external # Uncomment to allow interaction with the jsonrpc service from non-localhost addresses
+      #- --unsafe-ws-external  # Uncomment to allow interaction with the websocket rpc service from non-localhost addresses
+      #- --rpc-cors    # Uncomment this and next line to disable CORS checks for jsonrpc connections
+      #-   all
+      #- --rpc-methods # Uncomment this and next line to allow all RPC methods via non-localhost jsonrpc or websocket
+      #-   Unsafe
+      - --name
+      -  "<operator name>"
+      - --operator
+      - --sentry-nodes
+      -   /ip4/<xx.xx.xx.xx>/tcp/30333/p2p/<sentry 1 peerID> # Refer to the operator runbook for information on how to get the sentry peerID
+      -   /dns4/some.resolvable.hostname/tcp/30333/p2p/<sentry 2 peerID>
+      - --reserved-nodes
+      -   /ip4/xx.xx.xx.xx/tcp/30333/p2p/<sentry 1 peerID>
+      -   /ip4/some.resolvable.hostname/tcp/30333/p2p/<sentry 2 peerID>
+    ports:
+      - 30333:30333 # default libp2p port
+      - 9615:9615   # prometheus exporter port
+      - 9933:9933   # jsonrpc port
+      - 9944:9944   # websocket rpc port
+    ulimits:
+      nofile:
+        hard: 10240
+        soft: 1024
+    healthcheck:
+      test:
+        - "CMD"
+        - "echo"
+        - ">"
+        - "/dev/tcp/127.0.0.1/9944"
+        - "&&"
+        - "echo"
+        - ">"
+        - "/dev/tcp/127.0.0.1/9615"
+      interval: 10s
+      start_period: 120s
+      timeout: 5s
+      retries: 6
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 5s
+      restart_policy:
+        condition: any
+
