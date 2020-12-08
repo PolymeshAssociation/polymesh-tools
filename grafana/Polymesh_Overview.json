@@ -172,7 +172,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "mean"
+            "last"
           ],
           "fields": "",
           "values": false
@@ -1533,11 +1533,11 @@
               "refId": "D"
             },
             {
-              "expr": "120 / median(increase(polymesh_block_height{status=\"best\"}[2m]))",
+              "expr": "120 / quantile(0.5, increase(polymesh_block_height{status=\"best\"}[2m]))",
               "hide": false,
               "instant": false,
               "interval": "",
-              "legendFormat": "Avg",
+              "legendFormat": "Median",
               "refId": "E"
             },
             {
@@ -1673,7 +1673,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Incoming connection handshake - Limit reached",
+          "title": "Incoming connection handshake - Limit reached [1m]",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1770,7 +1770,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Pending connections - Limit reached",
+          "title": "Pending connections - Limit reached [1m]",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1867,7 +1867,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Incoming connection handshake - Invalid peerID",
+          "title": "Incoming connection handshake - Invalid peerID [1m]",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -1964,7 +1964,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Pending connection - Invalid PeerID",
+          "title": "Pending connection - Invalid PeerID [1m]",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2061,7 +2061,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Incoming connection handshake - transport error",
+          "title": "Incoming connection handshake - transport error [1m]",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2158,7 +2158,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Pending connection - transport error",
+          "title": "Pending connection - transport error [1m]",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2262,7 +2262,7 @@
           "timeFrom": null,
           "timeRegions": [],
           "timeShift": null,
-          "title": "Peer connections rate [1m]",
+          "title": "Peer connections (in/out) [1m]",
           "tooltip": {
             "shared": true,
             "sort": 0,
@@ -2324,7 +2324,7 @@
                 },
                 "reducer": {
                   "params": [],
-                  "type": "avg"
+                  "type": "max"
                 },
                 "type": "query"
               }
@@ -2414,7 +2414,7 @@
           "title": "Max peers [1m]",
           "tooltip": {
             "shared": true,
-            "sort": 0,
+            "sort": 2,
             "value_type": "individual"
           },
           "type": "graph",
@@ -2482,5 +2482,5 @@
   "timezone": "",
   "title": "Polymesh Overview",
   "uid": "eCh8kugh8eip",
-  "version": 7
+  "version": 12
 }
