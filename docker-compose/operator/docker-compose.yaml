@@ -26,7 +26,7 @@ services:
       -   /dns4/some.resolvable.hostname/tcp/30333/p2p/<sentry 2 peerID>
       - --reserved-nodes
       -   /ip4/xx.xx.xx.xx/tcp/30333/p2p/<sentry 1 peerID>
-      -   /ip4/some.resolvable.hostname/tcp/30333/p2p/<sentry 2 peerID>
+      -   /dns4/some.resolvable.hostname/tcp/30333/p2p/<sentry 2 peerID>
     ports:
       - 30333:30333 # default libp2p port
       - 9615:9615   # prometheus exporter port
