@@ -140,8 +140,7 @@ the [common parameters](#common-parameters-for-running-a-polymesh-node):
 Next call the `author_rotateKeys` method on the operator to generate session keys for your operator node:
 
 ```
-$ curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method":
-"author_rotateKeys", "params":[]}' http://localhost:9933 | jq -r .result
+$ curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "author_rotateKeys", "params":[]}' http://localhost:9933 | jq -r .result
 ```
 
 You will get an output similar to:
