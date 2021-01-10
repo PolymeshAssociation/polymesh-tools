@@ -289,40 +289,60 @@ before the next session) may result in penalties.**
 
 ## Securing the instance
 
-Best practices for securing your instances should be followed at all times. These include:
+Best practices for securing your instances should be followed at all times. These include (but are not limited to):
 
-* disabling password-based SSH
-* Setting up and enabling a firewall
+* Disabling password-based SSH access
+* Setting up and enabling a network firewall
 * Only opening ports that are needed
 * Disabling unnecessary services
 * Not using the root user and disabling root login
 * Keeping your system up to date
 * Turning on SELinux
-* Reviewing log files regularly
+* Monitoring logs and metrics for signs of malicious activity
+* Running periodic CIS benchmarks against your systems
+
+Be advised: due to the constantly changing landscape of cybersecurity the above list is not and cannot be
+comprehensive.  Node operators are responsible that the security of their nodes is up to date
+with current best practices.
 
 ## Terminology
 
 |Term|Definition|
 |----|----------|
-|Equivocation|When an operator node commits to two or more conflicting states.|
-|Immortal Transaction|A transaction that is valid at any time.|
-|Session|A session is a period of time that has a constant set of operators. Operators can only join or exit the operator set at a session change.|
-|Era|An Era is a whole number of sessions. It is the period over which operator and nominator sets are calculated, and rewards paid out.|
-|Operator Node|Operator nodes are permissioned network participants responsible for producing new blocks and finalising the block chain.|
-|Sentry Node|Sentry nodes are full archive nodes which operator nodes use as a proxy to the wider network, limiting the operator nodes exposure to the public internet and providing data redundancy.|
+|Equivocation        |When an operator node commits to two or more conflicting states.|
+|Immortal transaction|A transaction that is valid at any time.|
+|Session             |A session is a period of time that has a constant set of operators. Operators can only join or exit the operator set at a session change.|
+|Era                 |An Era is a whole number of sessions. It is the period over which operator and nominator sets are calculated, and rewards paid out.|
+|Operator node       |Operator nodes are permissioned network participants responsible for producing new blocks and finalising the block chain.|
+|Sentry node         |Sentry nodes are full archive nodes which operator nodes use as a proxy to the wider network, limiting the operator nodes exposure to the public internet and providing data redundancy.|
+|Warm spare node     |A node that is online and synced but not configured to be an operator.  A warm spare requires manual intervention to become an active operator.|
 
 # Polymesh Operator - Detailed Guide
 
 ## Overview
 
-This guide will show how a Polymesh operator node can be set up. Please see “Polymesh Operator
-- Overview” before continuing to get an overview of the architecture. This guide assumes that you
-have already set up a VPN connection between the sentry nodes and the operator nodes.
+This guide will show how a Polymesh operator node can be set up. Please ensure that you have read
+the [Polymesh Operator - Overview](#polymesh-operator---overview) section first.
 
-## Getting the Polymesh node
+## Getting the Polymesh Node Software
 
-You can directly build the latest release from source code. You can find the instructions on
-https://github.com/PolymathNetwork/Polymesh
+Both sentry and operator nodes use the same binary and only differ in the parameters used to
+run them.
+
+There are a number of ways to get and deploy the node binary:
+
+* Fetch the prebuilt container image from the [Polymath Docker Hub repository](https://hub.docker.com/r/polymathnet/polymesh).
+  There are two flavours available:  `debian` and `distroless`.  The latter has no shell and thus provides a reduced attack
+  surface, whereas the former's shell helps with debugging during the initial setup.  The images are tagged with `<flavour>`
+  and `<flavour>-<version>`.  We recommend using the latter for deterministic versioning, but the former can be used if you
+  set your image pull policy to always pull.  We have also published [sample docker-compose files](../../docker-compose).
+  The two release flavours (`debian` and `distroless`) are interchangeable in terms of operation - a setup running the
+  `debian` flavour can be changed to use the `distroless` flavour by only changing the container tag and vice-versa.
+* Fetch the precompiled binary from our [GitHub releases page](https://github.com/PolymathNetwork/Polymesh/releases).  In addition
+  to the release source code files we publish four files:  The Polymesh binary and its checksum (identified by the `-linux-amd64`
+  suffix indicating the CPU platform it is compiled for) and an archive of Polymesh runtimes and its checksum.  You do not need
+  the runtime files as they are already included in the binary.
+* Build your own binary from the [release branch of our source code](https://github.com/PolymathNetwork/Polymesh/tree/alcyone)
 
 ## Getting the identity of a Operator node
 
