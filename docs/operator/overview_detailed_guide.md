@@ -94,7 +94,7 @@ your operator nodes as you like.
 ### Operator Node
 
 Operators provide critical services to the network and are expected to maintain nearly continuous
-uptime [1](#operator-node-notes). However, it is imperative that only one operator node is active per operator. If multiple
+uptime \[[1](#operator-node-notes)\]. However, it is imperative that only one operator node is active per operator. If multiple
 operator nodes for a single operator do end up online at the same time, they may end up signing
 multiple conflicting blocks and will thus get penalized for equivocation (see definition at end of
 document). We recommend that you have a primary operator and a secondary one that acts as
