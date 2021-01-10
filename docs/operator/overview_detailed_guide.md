@@ -58,9 +58,14 @@ bond more POLYX later. However, withdrawing any bonded POLYX requires to wait fo
 of the unbonding period, which is currently 28 days.
 
 ## Network Architecture
-The recommended secure operator setup consists of a single non-internet facing operator node
-and multiple internet-facing sentry nodes. The operator node must connect to only its sentry
-nodes and not be connected to anything/anyone else over the internet.
+
+The recommended secure operator setup for `mainnet` consists of the following:
+
+* A firewalled (both ingress and egress) active operator node
+* A warm spare operator node
+* Two or more Internet-facing sentry nodes
+
+The operator node needs to only connect with its sentry nodes.
 
 Sentry nodes are essentially full archive nodes that act as the gatekeeper between your operator
 node and the outside world. This setup is intended to isolate the operator node from public
@@ -68,22 +73,28 @@ networks, mitigating the risk of a DDoS and other attacks on your operator node.
 
 The operator and sentry nodes do not need to be co-located, but the network between the nodes
 should be secured and should allow two-way traffic between the sentries and operators. This may
-be achieved via solutions like VPN or a cloud provider’s private networking and peering solutions.
+be achieved via solutions like firewalls, VPN, or a cloud provider’s private networking and peering
+solutions. Traffic encryption is preferred but not required.
+
+A *minimum* recommended `testnet` setup would include one operator node and one sentry node.
 
 ## High Availability
 
 ### Sentry Nodes
 
-The internet-facing sentry nodes should be highly available. We recommend that you have at least
-two sentry nodes for every operator and add more if your sentry nodes are getting spammed
-(DDoS attacked). The operator node needs at least one sentry online at all times so you must make
+The internet-facing sentry nodes should be highly available. An operator node should have at least
+two sentry nodes. Two or more operator nodes may share their sentry nodes, but the amount of sentry
+nodes should be scaled to provide sufficient redundancy / load balancing / DDoS protection for their assigned
+operator nodes.
+
+An operator node needs at least one sentry online at all times so you must make
 sure that your sentry nodes are highly available. You can set up as many active sentry nodes for
-your operator node as you like.
+your operator nodes as you like.
 
 ### Operator Node
 
 Operators provide critical services to the network and are expected to maintain nearly continuous
-uptime. However, it is imperative that only one operator node is active per operator. If multiple
+uptime [^uptime]. However, it is imperative that only one operator node is active per operator. If multiple
 operator nodes for a single operator do end up online at the same time, they may end up signing
 multiple conflicting blocks and will thus get penalized for equivocation (see definition at end of
 document). We recommend that you have a primary operator and a secondary one that acts as
@@ -107,6 +118,10 @@ must make sure that your primary node does not come back online without switchin
 secondary node. In this setup, there's a risk of equivocation if failover is not configured correctly
 both nodes can become active at the same time. The penalty for equivocation is much higher than
 the penalty for being offline. Therefore, this approach is not recommended.
+
+[^uptime]: The network is resilient to temporary outages of operator nodes.  Any one operator
+node may be down for a few minutes for upgrades, but should not have extended downtime lest they
+risk getting slashed from the network.
 
 ## Key Management
 
