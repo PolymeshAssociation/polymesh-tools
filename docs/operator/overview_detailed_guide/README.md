@@ -115,7 +115,7 @@ online. ***The penalty for equivocation is much higher than the penalty for bein
 The uniqye session key method uses different session keys for different instances of operator nodes. If
 the primary operator node goes down for some reason, the controller will need to change the
 active session keys on the blockchain for the secondary node to become active. Since a key
-change takes effect only in the next session, you may still get penalized for being offline for one
+change takes effect only in the next session, you may still get penalised for being offline for one
 session if your primary node went down without producing any blocks in that session. However this
 approach eliminates the risk of equivocation penalties.
 
@@ -195,78 +195,99 @@ The basic health of a node can be assessed by monitoring the following metrics:
 | Network connectivity      |<1% packet loss|This mainly applies to sentry nodes. They should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new sentry nodes should be deployed.|
 
 We have published a Grafana dashboard to monitor the metrics exposed by the Polymesh node via its Prometheus exporter.
-You may download it [here](https://github.com/PolymathNetwork/polymesh-tools/tree/main/grafana).
+You may download it [here](https://github.com/PolymathNetwork/polymesh-tools/tree/main/grafana). In order to use
+this dashboard you will need to scrape the metrics from the Prometheus exporter and collect them in a Prometheus
+server to which Grafana will connect.
 
 ## Upgrading or Replacing a Node
 
-### Sentry nodes
+### Sentry Nodes
 
-To upgrade a sentry instance, spawn a backup/replacement sentry instance first. Please see
-setting up a sentry node guide for more details. The new sentry node should be connected to the
-internet as well as your operator instance. Before proceeding, please make sure that your new
-sentry node is connected to your operator node successfully.
+The upgrade process for sentry nodes varies depending on your network topology.
 
-Once your new sentry node is setup, stop the Polymesh client running on one of the old sentry
-nodes, install the new version of Polymesh client and resume operation. Once the upgraded sentry
-node has synchronized proceed to upgrade other sentry servers one by one. After you are done
-upgrading all of your sentry nodes, you can safely decommission the temporary sentry node you
-set up in the first step.
+* If you have only a single sentry node (i.e. when running the minimal `testnet` setup) or low
+  redundancy for your sentry nodes it is recommended to create a replacement sentry node first,
+  connect the operator node to it, and then terminate the original sentry node (or do a rolling
+  upgrade if more than one sentry node requires upgrading). All precautions outlined in
+  the [High Availability](#high-availability) section should be observed.
+* If you have sufficient redundancy you may just do a rolling upgrade of your sentries. Do ensure
+  that your operator nodes reconnect to the upgraded sentries before proceeding to upgrading
+  the next sentry.
 
-See “Polymesh Operator - Detailed Guide” for more details
+### Operator Node
 
-### Operator node
+The recommended upgrade process for operator nodes is to perform a failover to the warm spare
+operator node.
 
-First, you should upgrade your secondary/failover operator node. Since the secondary operator
-node is not actively validating (assuming your primary node is working as intended), you can
-simply stop the Polymesh client running on the secondary node, install the new Polymesh client
+The warm spare operator node should be upgraded first. Since this node is not actively
+validating you can simply stop the Polymesh client running on it, perform the necessary upgrade,
 and then resume operation.
 
-Once your secondary node is upgraded and fully synchronized, you should make your secondary
-node active by submitting the change on the blockchain using your controller account.
+Once your warm spare operator node is upgraded and fully synchronised, you should make it the
+active node by submitting the change on the blockchain using your controller account.
+
 To do so:
 
-* go to Staking > Account Actions,
-* click on "Set Session Key" against your bonding account,
-* enter the output from author_rotateKeys in the field and click on "Set Session Key".
+1. (If not done already) Generate a new set of session keys for the warm spare operator node
+2. Go to [Staking > Account Actions](https://alcyone-app.polymesh.live/#/staking/actions)
+3. Click on "Set Session Key" against your bonding account
+4. Enter the session keys from the warm node in the field and click on "Set Session Key"
 
-Please see setting up an operator node guide for more details on how to set up an operator node
-and use the author_rotateKeys RPC call.
+See [Running an Operator Nodes](#running-an-operator-node) for instructions on using the
+`author_rotateKeys` RPC method to generate node session keys.
 
-The change in operator session keys only applies in the next session. For safety, we recommend
-that you wait at least 2 sessions before continuing. In other words, if the current session is N, you
-should do the remaining steps in session N + 2.
+The change in operator session keys only applies in the next session. **For safety, we recommend
+that you wait at least 2 sessions before continuing**. In other words, if the current session is `N`, you
+should wait until session `N + 2` before proceeding with the steps below.
 
-Since your secondary operator is now acting as your active operator. You can safely take your
-primary operator node offline and upgrade it.
+At this point your warm spare and active operator nodes have switched roles:  The previous warm
+spare is now the active operator node and vice-versa.  Be sure to treat them accordingly henceforth.
+Alternatively you may perform the failover operation again to restore your original active node
+as the current active node and the original warm spare as the current warm spare.
 
-Once you are done upgrading, you can simply mark this operator node as your failover node and
-make your previous secondary operator node, your new primary node. In that case, you do not
-need to do anything else at this moment.
+On `testnet` you may perform an in-place upgrade if you do not have a warm spare.  We do not
+recommend this approach for mainnet due to the risk of penalisation due to downtime in the case
+of a failed upgrade.
 
-Alternatively, you can make your newly upgraded node primary again. To do this, you need to
-submit its session keys to the blockchain using your controller account. The process will be similar
-to how you submitted your failover node's session keys to the blockchain.
-
-See “Polymesh Operator - Detailed Guide” for more details
-
-## Backing up a node
+## Backing Up a Node
 
 Since Polymesh is a public blockchain, you do not necessarily need to backup your nodes. You can
 always synchronize from scratch.
 
-However, it takes quite a bit of time to synchronize a node from scratch and hence you can choose
-to backup the full blockchain DB regularly to be able to spin up new nodes faster.
+It takes quite a bit of time to synchronize a node from scratch.  To minimise the time between node
+creation and node readiness may choose to back up the full blockchain DB regularly.  This process
+does not need to be done on every node - a database backup performed on one node may be used
+on another node as long as they have the same setting for the `--pruning` parameter. Since
+operator nodes run with an implicit `--pruning archive` setting we recommend that you make that
+parameter explicit on all nodes so that they can share a single database backup.
 
-## Stop being a Operator
+Backing up the database should be done on an offline node. A typical approach to do this would be:
 
-To stop being an operator,
+* Stop the polymesh process on the backup node
+* Snapshot the database directory
+* Restart the polymesh process
+* Sync the database snapshot to offsite storage
 
-* go to Staking > Account Actions,
-* click on "Stop Validating" against your bonding account.
+The database snapshot contains no confidential information as long as **only** the
+`/<base path>/chains/alcyone/db` directory is backed up.
+
+Because of the nature of how the database is stored in files, stopping/starting the polymesh
+process will create partial database files.  Since an excessive amount of files in a directory
+can cause performance issues we recommend to either limit snapshots to a daily frequency or
+to periodically reset the backup node's database to a fresh sync from the chain.
+
+## Stop Being an Operator
+
+To stop being an operator on the Polymesh chain,
+
+* Go to [Staking > Account Actions](https://alcyone-app.polymesh.live/#/staking/actions)
+* Click on "Stop Validating" against your bonding account
 
 You will be removed from the operator set in the next session. You can then safely terminate all
-your operator and sentry nodes, remember failure to terminate safely may result in penalties.
-Securing the instance
+your operator and sentry nodes. **failure to terminate safely (e.g. by terminating
+before the next session) may result in penalties.**
+
+## Securing the instance
 
 Best practices for securing your instances should be followed at all times. These include:
 
@@ -347,7 +368,7 @@ http://localhost:9933 \
 Details around telemetry are yet to be decided. A full guide with proper instructions will follow
 later.
 
-## Sentry Nodes
+## Running a Sentry Node
 
 To run a sentry node, you will need to make use of the following options:
 
@@ -381,7 +402,7 @@ up a new instance, download/build the Polymesh node on it and run
 --telemetry-url ws://TELEMETRY_SERVER_IP:TELEMETRY_SERVER_PORT 0
 ```
 
-## Operator Nodes
+## Running an Operator Node
 
 To run an operator node, you need to use the --operator flag in the Polymesh node. You should
 also use the --reserved-only flag so that the node only connects to the reserved trusted peers.
