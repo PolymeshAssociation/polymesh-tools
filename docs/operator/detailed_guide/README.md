@@ -55,182 +55,160 @@ There are a number of ways to get and deploy the node binary:
   the runtime files as they are already included in the binary.
 * Build your own binary from the [release branch of our source code](https://github.com/PolymathNetwork/Polymesh/tree/alcyone)
 
-## Getting the identity of a Operator node
+## Auto Restarting Nodes
 
-You need to execute the following command to start your operator and then copy the node's
-identity. Once you have copied the identity, close the operator node.
+All your nodes should automatically restart in the case of an intermittent failure.
+
+For container-based nodes use your container runtime's features: `restart_policy.condition: any`
+for `docker-compose`, `restartPolicy: Always` for `kubernetes`, etc.
+
+If running the node as a binary we recommend using a supervisor process to ensure that the
+binary is restarted if terminated abnormally.  Most contemporary Linux distributions use
+`systemd` for this purpose, so we will focus on that, but you are not limited to using it
+if your infrastructure uses a different supervisor process.
+
+To get started, create a new systemd unit file called `polymesh.service` in the
+`/etc/systemd/system/` directory. The following content should be in this unit file
 
 ```
-./polymesh --operator
+[Unit]
+Description=Polymesh Node
+
+[Service]
+ExecStart=<path to polymesh binary> <polymesh parameters>
+Restart=always
+MemoryLimit=<2/3 the available system RAM, e.g. ~6GB for a system with 8GB RAM>
+
+[Install]
+WantedBy=multi-user.target
 ```
 
-The above command will start the operator node and it will look something like
+To enable this service to automatically start on bootup run
 
 ```
-./polymesh --operator
+systemctl daemon-reload && systemctl enable polymesh.service
+```
+
+You can also `start`, `stop`, `restart`, and check the `status` of the service with the respective `systemctl` commands, e.g.
+
+```
+systemctl start polymesh.service
+```
+
+The `journalctl` command can be used to read the systemd unit logs:
+
+```
+journalctl -u polymesh
+```
+
+See the man pages for `journalctl` for more details on how to use that command.
+
+## Common Parameters for Running a Polymesh Node
+
+To run a polymesh node we recommend that you make use of the following options:
+
+* `--name <name>` (optional but recommended): Human-readable name of the nodes that is reported to the telemetry services
+* `--pruning archive`: Ensure that the node maintains a full copy of the blockchain
+* `--base-path <path>` (optional): Specify where Polymesh will look for its DB files and keystore
+* `--db-cache <cache size in MiB>` (optional):  Improve the performance of the polymesh process by increasing its
+  in-memory cache above the default `128` MiB.  On a node with 8GB RAM available a reasonable value is in the
+  ballpark of `4096`.
+
+
+## Running a Sentry Node
+
+The sentry node can run with only the [common parameters](#common-parameters-for-running-a-polymesh-node).
+
+You will need to [retrieve the sentry nodes' peer IDs](getting-the-identity-of-a-node) and public IP addresses
+and provide them to the operator node(s).
+
+It is recommended that you run at least two sentry nodes on different machines.
+
+## Running an Operator Node
+
+To run an operator node you will need to use the following options in additon to
+the [common parameters](#common-parameters-for-running-a-polymesh-node):
+
+* `--operator`: Enable the operator flag on the node.
+* `--reserved-only`: Only connect to reserved peers.
+* `--reserved-nodes` (conditionally optional - see notes): This parameter takes a space separated list of libp2p peer addresses
+  in the form of `/ip4/<SENTRY_IP_ADDRESS>/tcp/30333/p2p/<SENTRY_NODE_IDENTITY>` or `/dns4/<SENTRY_RESOLVABLE_HOSTNAME>/tcp/30333/p2p/<SENTRY_NODE_IDENTITY>` to which
+  the operator node will connect.  If left out then the peers must be provided via the `system_addReservedPeer`
+  RPC method.  Failure to provide peers via either this parameter or the RPC method will cause the operator node
+  to remain disconnected from the chain.
+
+Next call the `author_rotateKeys` method on the operator to generate session keys for your operator node:
+
+```
+$ curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method":
+"author_rotateKeys", "params":[]}' http://localhost:9933 | jq -r .result
+```
+
+You will get an output similar to:
+
+```
+0x2bd908203ae740b513f5907fdcc2e29a6bd2835618da917c03d2cfe65d96745\
+b54d59fe4dc5a106c130be0e677596eb023164c314d6fb5cc62ead1bcaee6a443\
+fe5df859fc1de372580abaa98a22fee962bcff580bf57138adc12955aa698a5fa\
+a923978d9c16014205af96da9d2e213083aefcb53982927a2756ffa83d81658
+```
+
+Take note of this string: it contains the public portion of your session keys. The private
+keys are stored in a keystore on your operator server in the `/<base path>/chains/alcyone/keystore/`
+directory. The filenames of those keys are the public key portion of the respective session key, and
+the contents of the files are the private key portion.
+
+NOTE: Before [activating your operator node](#setting-session-keys) please wait for all
+your nodes to be fully synced and make sure that everything is production ready.
+
+## Getting the Identity of a Node
+
+There are two simple methods for getting the public identity of a node:
+
+* From the operator node logs
+* Via an RPC call
+
+To get the node identity from the operator node logs start the node process and wait until the line containing the string `Local node identity` is printed:
+
+```
 2020-03-02 11:19:20 Polymesh Node
 2020-03-02 11:19:20 version 2.0.0-a8676cab-x86_64-linux-gnu
 2020-03-02 11:19:20 by Polymath, 2018-2020
 2020-03-02 11:19:20 Chain specification: Local Testnet
 2020-03-02 11:19:20 Node name: dirty-vase-9822
 2020-03-02 11:19:20 Roles: AUTHORITY
-2020-03-02 11:19:20 Local node identity is: QmZ1vCz7QpYsHMug7XLZynqKcueKVWWoTxFqBCRQ487YSr
+2020-03-02 11:19:20 Local node identity is: 12D3KoovCz7QpYsHMug7XLZynqKcueKVWWoTxFqBCRQ487YSrrDG
 2020-03-02 11:19:20 Starting BABE Authorship worker
 2020-03-02 11:19:20 Grafana data source server started at 127.0.0.1:9955
+...
 ```
 
-From that, you can see your node's identity (QmZ1vCz7QpYsHMug7XLZynqKcueKVWWoTxFqBCRQ487YSr in this
-case). Please save this for later and terminate the operator node.
+After that the process can be gracefully terminated.
 
-You can also retrieve the node’s identity after starting it by querying the `system_networkState`
-method on the node’s JSONRPC port and reading the result.peerId value, for example:
+The above sample log tells us that that node's identity is `12D3KoovCz7QpYsHMug7XLZynqKcueKVWWoTxFqBCRQ487YSrrDG` -
+your node's identity will be different. Please save this for later and terminate the operator node process.
 
-```
-curl \
--s \
--H "Content-Type: application/json" \
--d '{"id":1, "jsonrpc":"2.0", "method": "system_networkState", "params":[]}' \
-http://localhost:9933 \
-| jq -r .result.peerId
-```
-
-## Telemetry Server
-
-Details around telemetry are yet to be decided. A full guide with proper instructions will follow
-later.
-
-## Running a Sentry Node
-
-To run a sentry node, you will need to make use of the following options:
-
-* `--sentry`: This parameter enumerates the operators to which the sentry will connect. Each
-operator address uses libp2p format, for example
-`/ip4/OPERATOR_IP_ADDRESS/tcp/30333/p2p/OPERATOR_PEER_ID`. Multiple operators can be
-enumerated with a single `--sentry` parameter, provided that their addresses are separated with a
-space.
-* `--name`: Human-readable name of the nodes that is reported to the telemetry services.
-* `--telemetry-url`: This provides the optional telemetry server to report the node stats and resource
-usage. It requires a second parameter to specify the verbosity in the form or a number (0=lowest
-verbosity, default=1)
-
-Execute the following command to start a sentry node
+To get the node identity via RPC call the `system_localPeerId` method and read the `result` value:
 
 ```
-./polymesh \
---name "Sentry-A" \
---sentry /ip4/OPERATOR_IP_ADDRESS/tcp/30333/p2p/OPERATOR_NODE_IDENTITY \
---telemetry-url ws://TELEMETRY_SERVER_IP:TELEMETRY_SERVER_PORT 0
+$ curl -s -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "system_localPeerId", "params":[]}' http://localhost:9933 | jq -r .result
+12D3KoovCz7QpYsHMug7XLZynqKcueKVWWoTxFqBCRQ487YSrrDG
+$
 ```
 
-Make sure to write down the identity of the sentry nodes as well.
-It is recommended that you run at least two sentry nodes. To start your second sentry node, spin
-up a new instance, download/build the Polymesh node on it and run
+## Metrics
 
-```
-./polymesh \
---name "Sentry-B" \
---sentry /ip4/OPERATOR_IP_ADDRESS/tcp/30333/p2p/OPERATOR_NODE_IDENTITY \
---telemetry-url ws://TELEMETRY_SERVER_IP:TELEMETRY_SERVER_PORT 0
-```
+The recommended approach to getting metrics from the Polymesh node is via its built-in prometheus exporter endpoint.
+This endpoint can be scraped with a prometheus-compatible server or agent.
 
-## Running an Operator Node
+By default the prometheus exporter will
+bind to `localhost` on port `9615`.  You can expose the exporter port to additional interfaces with the
+`--prometheus-external` flag to enable network based scraping or use a local agent such as `telegraf`,
+`grafana-cloud-agent`, or `victoria-metrics-agent` to collect the metrics and push them to the prometheus server.
 
-To run an operator node, you need to use the --operator flag in the Polymesh node. You should
-also use the --reserved-only flag so that the node only connects to the reserved trusted peers.
-The following command will start a Polymesh operator node.
-
-```
-./polymesh \
---name "Operator" \
---operator \
---reserved-nodes /ip4/SENTRY_A_IP_ADDRESS/tcp/30333/p2p/SENTRY_A_NODE_IDENTITY \
-/ip4/SENTRY_B_IP_ADDRESS/tcp/30333/p2p/SENTRY_B_NODE_IDENTITY \
---reserved-only \
---telemetry-url ws://TELEMETRY_SERVER_IP:TELEMETRY_SERVER_PORT
-```
-
-It is recommended that you also set up a failover operator node using the same config on a
-different server. You can enumerate both operator addresses in the sentries or update the sentry
-configuration at failover time.
-
-Now you need to generate session keys for your operator. Run the following command on the
-same machine to generate session keys for your operator.
-
-```
-curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method":
-"author_rotateKeys", "params":[]}' http://localhost:9933
-```
-
-You will get an output similar to:
-
-```
-{"jsonrpc":"2.0","result":"0x2bd908203ae740b513f5907fdcc2e29a6bd2835618da917c03d2cfe65
-d96745b54d59fe4dc5a106c130be0e677596eb023164c314d6fb5cc62ead1bcaee6a443fe5df859fc1de37
-2580abaa98a22fee962bcff580bf57138adc12955aa698a5faa923978d9c16014205af96da9d2e213083ae
-fcb53982927a2756ffa83d81658","id":1}
-```
-
-Take note of the “result” field. In example above, it is:
-
-```
-0x2bd908203ae740b513f5907fdcc2e29a6bd2835618da917c03d2cfe65d96745b54d59fe4dc5a106c130b
-e0e677596eb023164c314d6fb5cc62ead1bcaee6a443fe5df859fc1de372580abaa98a22fee962bcff580b
-f57138adc12955aa698a5faa923978d9c16014205af96da9d2e213083aefcb53982927a2756ffa83d81658
-```
-
-These are the public keys of your session keys. The private keys are stored in a keystore on your
-operator server.
-
-NOTE: Before proceeding to the final step that activates your operator node, please wait for all
-your nodes to fully sync and make sure that everything has been set up properly.
-
-## Auto restarting nodes
-
-All your nodes should be run using services like systemd so that they are automatically restarted
-when a failure happens or the server restarts. You are free to use alternatives but we’ll be using
-systemd for this guide.
-
-To get started, create a new systemd unit file called `polymesh-node.service` in
-`/etc/systemd/system/`. You may use your favourite text editor, e.g.
-`nano /etc/systemd/system/polymesh-node.service`
-
-The following content should be in the unit file
-
-```
-[Unit]
-Description=Polymesh Node
-[Service]
-ExecStart=PATH_TO_POLYMESH_BIN POLYMESH_FLAGS_MENTIONED_ABOVE
-Restart=always
-[Install]
-WantedBy=multi-user.target
-```
-
-To enable this to autostart on bootup run:
-
-```
-systemctl enable polymesh-node.service
-```
-
-Start it manually with:
-
-```
-systemctl start polymesh-node.service
-```
-
-You can check the status of the service with:
-
-```
-systemctl status polymesh-node.service
-```
-
-## Other Configurations
-
-It is recommended to cap the node’s memory use to 2/3rd of the system RAM or 6144MB,
-whichever is greater. This can be achieved in systemd unit files with the MemoryLimit setting.
-The `--db-cache` parameter to the polymesh binary can be used to improve the performance on
-busy nodes. It is recommended that it be set no lower than the default of 128 (MiB), and that it be
-capped at the lesser of 1/2 system RAM or `(system RAM - 4GiB)`.
+Once collected the metrics can be monitored and charted with various prometheus-compatible tools.  We provide a sample
+[Grafana dashboard](https://github.com/PolymathNetwork/polymesh-tools/tree/main/grafana) which monitors the most
+common metrics and includes some basic alerts for said metrics.
 
 ## Bonding POLYX
 
@@ -241,37 +219,35 @@ what to do with the bonded funds is called the controller account.
 It is highly recommended that you make your controller and stash accounts be two separate
 accounts. For this, you will create two accounts and make sure each of them has at least enough
 funds to pay the fees for making transactions. Keep most of your funds in the stash account since
-it is meant to be the custodian of your staking funds. Please note that for Alcyone Testnet you
-can use the same account for the Stash account and the Controller account.
+it is meant to be the custodian of your staking funds.
+
+**Please note that for Alcyone *Testnet* you
+can use the same account for the Stash account and the Controller account.**
 
 To bond your funds,
 
-* go to the Staking section,
-* click on "Account Actions",
-* click on the "+”Stash” button.
+* Go to [Staking section](https://alcyone-app.polymesh.live/#/staking/actions)
+* Click on "Account Actions"
+* Click on the "+”Stash” button
 
 ![Bonding preferences](images/22079145-bec7-4e47-9154-88b0e3dfa964.png "Bonding preferences")
 
-* Stash account
-  * Select your Stash account. In this example, we will bond 100 milli POLYX - make
+* **Stash account**: Select your Stash account. In this example, we will bond 100 milli POLYX - make
     sure that your Stash account contains at least this much. You can, of course, stake
     more than this.
-* Controller account
-  * Select the Controller account created earlier. This account will also need a small
+* **Controller account**: Select the Controller account created earlier. This account will also need a small
     amount of POLYX in order to start and stop validating.
-* Value bonded
-  * How much POLYX from the Stash account you want to bond/stake. Note that you
+* **Value bonded**: How much POLYX from the Stash account you want to bond/stake. Note that you
     do not need to bond all of the POLYX in that account. Also, note that you can
     always bond more POLYX later. However, withdrawing any bonded amount requires
     to wait for the duration of the unbonding period.
-* Payment destination
-  * The account where the rewards from validating are sent.
+* **Payment destination**: The account where the rewards from validating are sent.
     Once everything is filled in properly, click Bond and sign the transaction with your Stash account.
-    After a few seconds, you should see an "ExtrinsicSuccess" message. You should now see a
+    After a few seconds, you should see an `ExtrinsicSuccess` message. You should now see a
     new card with all your accounts (note: you may need to refresh the screen). The bonded amount
     on the right corresponds to the funds bonded by the Stash account.
 
-##  Setting Session Keys
+## Setting Session Keys
 
 You need to tell the Polymesh blockchain what your session keys are. This is what associates your
 operator with your Controller account. If you ever want to switch your operator node, you just need
@@ -283,11 +259,11 @@ those keys.
 
 To set your Session Keys,
 
-* go to the Staking section,
-* click on "Account Actions",
-* click on the "Session Key" button on the bonding account you generated earlier.
-* enter the result of `author_rotateKeys` that we saved earlier in the field and click "Set Session Key",
-* submit this extrinsic and you are now ready to start validating.
+* Go to [Staking section](https://alcyone-app.polymesh.live/#/staking/actions)
+* Click on "Account Actions"
+* Click on the "Session Key" button on the bonding account you generated earlier
+* Enter the result of `author_rotateKeys` that we saved earlier in the field and click "Set Session Key"
+* Submit this extrinsic and you are now ready to start validating
 
 ![Set session key](images/edf14234-3474-43ad-ba3e-910ada7bca52.png "Set session key")
 
@@ -306,5 +282,6 @@ Enter the reward commission percentage and click on Validate.
 
 ![Validate](images/eddb483b-2869-4843-8407-bcc329569558.png "Validate")
 
-Congratulations! Your operator has been added in the queue and will become active in the next
+**Congratulations!** Your operator has been added in the queue and will become active in the next
 session.
+

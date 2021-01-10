@@ -233,7 +233,7 @@ To do so:
 3. Click on "Set Session Key" against your bonding account
 4. Enter the session keys from the warm node in the field and click on "Set Session Key"
 
-See [Running an Operator Nodes](#running-an-operator-node) for instructions on using the
+See [Running an Operator Nodes](https://github.com/PolymathNetwork/polymesh-tools/tree/main/docs/operator/detailed_guide/README.md#running-an-operator-node) for instructions on using the
 `author_rotateKeys` RPC method to generate node session keys.
 
 The change in operator session keys only applies in the next session. **For safety, we recommend
