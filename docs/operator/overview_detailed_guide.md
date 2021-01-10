@@ -151,11 +151,11 @@ attached to the operator node.
 
 The following resources should be allocated to each Polymesh node:
 
-Resource|Minimum Value|Recommended Value
-----------------------------------------
-CPU     |2 CPU        |4 CPU
-RAM     |8 GB         |8 GB
-Storage |80 GB SSD    |100+ GB local NVMe SSD
+| Resource | Minimum Value | Recommended Value |
+| ---------| --------------| ----------------- |
+| CPU      | 2 CPU         | 4 CPU             |
+| RAM      | 8 GB          | 8 GB              |
+| Storage  | 80 GB SSD     | 100+ GB local NVMe SSD |
 
 Please note that storage requirements will increase over-time. As such, adequate monitoring
 measures should be put in place to ensure continued operations of the node.
@@ -164,14 +164,14 @@ measures should be put in place to ensure continued operations of the node.
 
 The health of a node can be assessed by monitoring the following parameters.
 
-Parameter|Operational Range|Additional Information
---------------------------------------------------
-Finalized Block number|+/- 3 from rest of the network|The block number for the rest of the network should be fetched from an external source.
-Free disk space|30 GB+ or > 20% volume capacity|There should always be some free disk space for the Polymesh node to consume.
-Free RAM|1 GB+|Spikes in RAM usage are acceptable but on average, there should be at least 1 GB of free RAM available on the system for the node to consume.
-CPU usage|5-50% (overall)|This is the overall CPU usage and not per core usage. Occasional spikes above 50% are acceptable but more cores should be added if the CPU usage continuously stays above 50%.
-Network connectivity|<1% packet loss|This mainly applies to sentry nodes. They should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new sentry nodes should be deployed.
-Number of peers|# of expected connections for operators, minimum # for sentry nodes|An operator node should have a deterministic number of peers, a sentry should have a minimum number of peers (operators).
+|Parameter|Operational Range|Additional Information|
+----------------------------------------------------
+|Finalized Block number|+/- 3 from rest of the network|The block number for the rest of the network should be fetched from an external source.|
+|Free disk space|30 GB+ or > 20% volume capacity|There should always be some free disk space for the Polymesh node to consume.|
+|Free RAM|1 GB+|Spikes in RAM usage are acceptable but on average, there should be at least 1 GB of free RAM available on the system for the node to consume.|
+|CPU usage|5-50% (overall)|This is the overall CPU usage and not per core usage. Occasional spikes above 50% are acceptable but more cores should be added if the CPU usage continuously stays above 50%.|
+|Network connectivity|<1% packet loss|This mainly applies to sentry nodes. They should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new sentry nodes should be deployed.|
+|Number of peers|# of expected connections for operators, minimum # for sentry nodes|An operator node should have a deterministic number of peers, a sentry should have a minimum number of peers (operators).|
 
 ## Upgrading / Replacing a node
 
