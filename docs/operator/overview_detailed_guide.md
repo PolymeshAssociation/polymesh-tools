@@ -473,7 +473,8 @@ To bond your funds,
 * go to the Staking section,
 * click on "Account Actions",
 * click on the "+”Stash” button.
-  ![Bonding preferences](images/22079145-bec7-4e47-9154-88b0e3dfa964.png "Bonding preferences")
+
+![Bonding preferences](images/22079145-bec7-4e47-9154-88b0e3dfa964.png "Bonding preferences")
 
 * Stash account
   * Select your Stash account. In this example, we will bond 100 milli POLYX - make
@@ -511,8 +512,10 @@ To set your Session Keys,
 * click on the "Session Key" button on the bonding account you generated earlier.
 * enter the result of `author_rotateKeys` that we saved earlier in the field and click "Set Session Key",
 * submit this extrinsic and you are now ready to start validating.
-  ![Set session key](images/edf14234-3474-43ad-ba3e-910ada7bca52.png "Set session key")
-  ![Set session key](images/aad1824d-d1b9-41e7-9490-2ebf82171c24.png "Set session key")
+
+![Set session key](images/edf14234-3474-43ad-ba3e-910ada7bca52.png "Set session key")
+
+![Set session key](images/aad1824d-d1b9-41e7-9490-2ebf82171c24.png "Set session key")
 
 ## Activating your Operator Node
 
@@ -521,11 +524,11 @@ set up earlier. Once this step is complete, an improper setup may lead to penalt
 
 If everything looks good, go ahead and click on "Validate" in the UI.
 
-  ![Validate](images/87e444b5-4f94-4408-95c5-b63169fad5b9.png "Validate")
+![Validate](images/87e444b5-4f94-4408-95c5-b63169fad5b9.png "Validate")
 
 Enter the reward commission percentage and click on Validate.
 
-  ![Validate](images/eddb483b-2869-4843-8407-bcc329569558.png "Validate")
+![Validate](images/eddb483b-2869-4843-8407-bcc329569558.png "Validate")
 
 Congratulations! Your operator has been added in the queue and will become active in the next
 session.
