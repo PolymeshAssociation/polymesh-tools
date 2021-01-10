@@ -110,7 +110,7 @@ There are two recommended failover methods:
 
 With the shared session key method the operator node session keys are added to the warm spare in
 case of a primary operator node failure.  In this case the primary node **must not** come back
-online. *Be advised that the penalty for equivocation is much higher than the penalty for being offline*.
+online. ***The penalty for equivocation is much higher than the penalty for being offline***.
 
 The uniqye session key method uses different session keys for different instances of operator nodes. If
 the primary operator node goes down for some reason, the controller will need to change the
@@ -172,24 +172,30 @@ The following resources should be allocated to each Polymesh node:
 | Resource | Minimum Value | Recommended Value |
 | ---------| --------------| ----------------- |
 | CPU      | 2 CPU         | 4 CPU             |
-| RAM      | 8 GB          | 8 GB              |
+| RAM      | 8 GB          | 8+ GB              |
 | Storage  | 80 GB SSD     | 100+ GB local NVMe SSD |
 
-Please note that storage requirements will increase over-time. As such, adequate monitoring
-measures should be put in place to ensure continued operations of the node.
+The storage requirements will increase over time as the blockchain grows. Sufficient spare storage
+(or expandable volumes) and adequate monitoring measures should be put in place to ensure continued
+operations of the node.
 
-## Telemetry
+## Monitoring
 
-The health of a node can be assessed by monitoring the following parameters.
+The basic health of a node can be assessed by monitoring the following metrics:
 
 | Parameter | Operational Range | Additional Information |
 | --------- | ----------------- | ---------------------- |
-| Finalized Block number|+/- 3 from rest of the network|The block number for the rest of the network should be fetched from an external source.|
-| Free disk space|30 GB+ or > 20% volume capacity|There should always be some free disk space for the Polymesh node to consume.|
-| Free RAM|1 GB+|Spikes in RAM usage are acceptable but on average, there should be at least 1 GB of free RAM available on the system for the node to consume.|
+| Finalised block number    |+/- 3 from rest of the network|The block number for the rest of the network should be fetched from an external source.|
+|Best block time            |6s +/- 1s|The block time is the difference between the best block timestamps.  The ideal mean time is 6 seconds, but some jitter (less than 2s) is acceptable due to network latency|
+|Transactions in ready queue|0-150|A healthy node should have zero or near-zero transactions in its ready queue.  A ready queue with a growing number of transactions can be an idicator of excessive node latency|
+| Number of peers           |Number of sentries for operators, >2 for sentry nodes|An operator node should have a deterministic number of peers equal to the number of its sentries. A sentry node should have at least two peers (its operator and another network node)|
+| Free disk space           |30 GB+ or > 20% volume capacity|There should always be some free disk space for the Polymesh node to consume.|
+| Free RAM|1 GB+            |Spikes in RAM usage are acceptable but on average, there should be at least 1 GB of free RAM available on the system for the node to consume.|
 | CPU usage|5-50% (overall)|This is the overall CPU usage and not per core usage. Occasional spikes above 50% are acceptable but more cores should be added if the CPU usage continuously stays above 50%.|
-| Network connectivity|<1% packet loss|This mainly applies to sentry nodes. They should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new sentry nodes should be deployed.|
-| Number of peers|# of expected connections for operators, minimum # for sentry nodes|An operator node should have a deterministic number of peers, a sentry should have a minimum number of peers (operators).|
+| Network connectivity      |<1% packet loss|This mainly applies to sentry nodes. They should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new sentry nodes should be deployed.|
+
+We have published a Grafana dashboard to monitor the metrics exposed by the Polymesh node via its Prometheus exporter.
+You may download it [here](https://github.com/PolymathNetwork/polymesh-tools/tree/main/grafana).
 
 ## Upgrading or Replacing a Node
 
