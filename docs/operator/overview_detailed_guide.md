@@ -61,8 +61,8 @@ of the unbonding period, which is currently 28 days.
 
 The recommended secure operator setup for `mainnet` consists of the following:
 
-* A firewalled (both ingress and egress) active operator node
-* A warm spare operator node
+* A firewalled (both ingress and egress) active operator node with configured session keys
+* A warm spare operator node **without** session keys
 * Two or more Internet-facing sentry nodes
 
 The operator node needs to only connect with its sentry nodes.
@@ -93,50 +93,50 @@ your operator nodes as you like.
 
 ### Operator Node
 
-Operators provide critical services to the network and are expected to maintain nearly continuous
-uptime \[[1](#operator-node-notes)\]. However, it is imperative that only one operator node is active per operator. If multiple
-operator nodes for a single operator do end up online at the same time, they may end up signing
-multiple conflicting blocks and will thus get penalized for equivocation (see definition at end of
-document). We recommend that you have a primary operator and a secondary one that acts as
-failover and only becomes active if the primary operator goes down.
+The network is resilient to temporary outages of some of its operator nodes.  Any one operator
+node experience a few minutes of downtime for upgrades, but should not have frequent or extended downtime lest
+they risk getting slashed from the network.
 
-It is recommended that you use different session keys for different instances of operator nodes. If
+It is imperative that only one operator node is active with the same session keys. If multiple
+operator nodes with the same session keys do end up online at the same time then they will end up signing
+conflicting blocks and will thus get penalised for [equivocation](#terminology).
+We recommend that you do not configure automatic failover and instead maintain only a warm
+spare that is failed over in a supervised manner.
+
+There are two recommended failover methods:
+
+* Shared session key
+* Unique session key
+
+With the shared session key method the operator node session keys are added to the warm spare in
+case of a primary operator node failure.  In this case the primary node **must not** come back
+online. *Be advised that the penalty for equivocation is much higher than the penalty for being offline*.
+
+The uniqye session key method uses different session keys for different instances of operator nodes. If
 the primary operator node goes down for some reason, the controller will need to change the
 active session keys on the blockchain for the secondary node to become active. Since a key
 change takes effect only in the next session, you may still get penalized for being offline for one
-session if your primary node went down without producing any blocks in that session.
+session if your primary node went down without producing any blocks in that session. However this
+approach eliminates the risk of equivocation penalties.
 
 It is not recommended that you store your controller keys on a server for the automated signing of
 the key change transaction. However, you can pre-sign an immortal transaction (a transaction
 without a timeout) and store the signed transaction on a server that will broadcast it if the primary
-node goes down. Please see the Upgrading/Replacing your operator node section for more details.
+node goes down. Please see [Upgrading or Replacing a Node](#upgrading-or-replacing-a-node) for more details.
 
-An alternative way of setting up high availability of the operator node is to use the same session
-keys on both operator nodes. In that case, you must make sure that only one operator node is
-actively operating with the --operator option and when you switch to your secondary node, you
-must make sure that your primary node does not come back online without switching off the
-secondary node. In this setup, there's a risk of equivocation if failover is not configured correctly
-both nodes can become active at the same time. The penalty for equivocation is much higher than
-the penalty for being offline. Therefore, this approach is not recommended.
-
-#### Operator Node Notes
-
-1. The network is resilient to temporary outages of operator nodes.  Any one operator
-node may be down for a few minutes for upgrades, but should not have extended downtime lest they
-risk getting slashed from the network.
 
 ## Key Management
 
 There are three main types of keys that an operator must manage:
 
-* session keys,
-* controller key, and
-* stash key.
+* Session keys
+* Controller key
+* Stash key
 
 The session keys are the only type of keys that the operator node needs access to. The other two
 keys should be kept securely in a supported hardware wallet.
 
-### Session keys
+### Session Keys
 
 The session keys are the keys that an operator node uses to sign data needed for consensus.
 These keys are stored on the operator node itself. Session keys don’t hold any funds but they can
@@ -144,14 +144,15 @@ be used to perform actions that will result in a penalty, like double signing. H
 keep these keys secure.
 
 These keys can either be generated offline and injected in the operator node or can be generated
-within the operator node. We recommend generating these keys within the operator node using
-the provided RPC call so that these keys never leave the operator node.
+within the operator node by calling the appropriate RPC method. Once generated the session keys
+should be persisted.
 
 In the future, Polymesh will support signing payloads outside the client so that keys can be stored
 on another device, e.g. a hardware security module (HSM) or a secure enclave. For the time being,
-however, session keys must be stored within the client.
+however, session keys must be either stored within the client or be mounted from secure storage
+via external methods.
 
-### Controller key
+### Controller Key
 
 The controller key is used to manage bonded funds, vote with bonded funds and do similar actions
 on chain. This key is not directly needed by the operator node and hence must never be shared
@@ -159,7 +160,7 @@ with the operator node. It should be a multisig account or a supported hardware 
 can hold funds and directly control funds bonded by the operator and therefore these should be
 kept very securely. Consider these keys to be a semi-cold wallet.
 
-### Stash key
+### Stash Key
 
 This is the account where the operator rewards are sent. This should be a cold wallet, never
 attached to the operator node.
@@ -190,7 +191,7 @@ The health of a node can be assessed by monitoring the following parameters.
 | Network connectivity|<1% packet loss|This mainly applies to sentry nodes. They should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new sentry nodes should be deployed.|
 | Number of peers|# of expected connections for operators, minimum # for sentry nodes|An operator node should have a deterministic number of peers, a sentry should have a minimum number of peers (operators).|
 
-## Upgrading / Replacing a node
+## Upgrading or Replacing a Node
 
 ### Sentry nodes
 
