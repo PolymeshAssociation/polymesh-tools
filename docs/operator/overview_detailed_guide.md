@@ -258,7 +258,7 @@ Best practices for securing your instances should be followed at all times. Thes
 ## Terminology
 
 |Term|Definition|
------------------
+|----|----------|
 |Equivocation|When an operator node commits to two or more conflicting states.|
 |Immortal Transaction|A transaction that is valid at any time.|
 |Session|A session is a period of time that has a constant set of operators. Operators can only join or exit the operator set at a session change.|
