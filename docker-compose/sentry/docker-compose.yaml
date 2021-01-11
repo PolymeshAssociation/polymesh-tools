@@ -20,8 +20,6 @@ services:
       #-   Unsafe
       - --name
       -  "<sentry name>"
-      - --sentry
-      -   /ip4/<ip of operator node>/tcp/30333/p2p/<operator peerID>
     ports:
       - 30333:30333 # default libp2p port
       - 9615:9615   # prometheus exporter port

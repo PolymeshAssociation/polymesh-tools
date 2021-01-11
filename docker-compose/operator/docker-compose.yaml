@@ -21,11 +21,8 @@ services:
       - --name
       -  "<operator name>"
       - --operator
-      - --sentry-nodes
-      -   /ip4/<xx.xx.xx.xx>/tcp/30333/p2p/<sentry 1 peerID> # Refer to the operator runbook for information on how to get the sentry peerID
-      -   /dns4/some.resolvable.hostname/tcp/30333/p2p/<sentry 2 peerID>
       - --reserved-nodes
-      -   /ip4/xx.xx.xx.xx/tcp/30333/p2p/<sentry 1 peerID>
+      -   /ip4/xx.xx.xx.xx/tcp/30333/p2p/<sentry 1 peerID>  # Refer to the operator runbook for information on how to get the sentry peerID
       -   /dns4/some.resolvable.hostname/tcp/30333/p2p/<sentry 2 peerID>
     ports:
       - 30333:30333 # default libp2p port

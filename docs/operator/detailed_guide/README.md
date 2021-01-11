@@ -117,10 +117,12 @@ To run a polymesh node we recommend that you make use of the following options:
 
 ## Running a Sentry Node
 
-The sentry node can run with only the [common parameters](#common-parameters-for-running-a-polymesh-node).
+The sentry node can run with only the [common parameters](#common-parameters-for-running-a-polymesh-node).  Previously
+we recommended using the `--sentry` flag, but this feature is deprecated in upstream Substrate and not
+necessary for Polymesh nodes.
 
-You will need to [retrieve the sentry nodes' peer IDs](getting-the-identity-of-a-node) and public IP addresses
-and provide them to the operator node(s).
+You will need to [retrieve the sentry nodes' peer IDs](getting-the-identity-of-a-node) and public IP addresses (or
+proxy/gateway address if behind a NAT firewall) and provide them to the operator node(s).
 
 It is recommended that you run at least two sentry nodes on different machines.
 
