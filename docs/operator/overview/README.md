@@ -316,4 +316,3 @@ with current best practices.
 |Operator node       |Operator nodes are permissioned network participants responsible for producing new blocks and finalising the block chain.|
 |Sentry node         |Sentry nodes are full archive nodes which operator nodes use as a proxy to the wider network, limiting the operator nodes exposure to the public internet and providing data redundancy.|
 |Warm spare node     |A node that is online and synced but not configured to be an operator.  A warm spare requires manual intervention to become an active operator.|
-
