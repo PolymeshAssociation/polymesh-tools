@@ -112,7 +112,7 @@ With the shared session key method the operator node session keys are added to t
 case of a primary operator node failure.  In this case the primary node **must not** come back
 online. ***The penalty for equivocation is much higher than the penalty for being offline***.
 
-The uniqye session key method uses different session keys for different instances of operator nodes. If
+The unique session key method uses different session keys for different instances of operator nodes. If
 the primary operator node goes down for some reason, the controller will need to change the
 active session keys on the blockchain for the secondary node to become active. Since a key
 change takes effect only in the next session, you may still get penalised for being offline for one
@@ -316,4 +316,3 @@ with current best practices.
 |Operator node       |Operator nodes are permissioned network participants responsible for producing new blocks and finalising the block chain.|
 |Sentry node         |Sentry nodes are full archive nodes which operator nodes use as a proxy to the wider network, limiting the operator nodes exposure to the public internet and providing data redundancy.|
 |Warm spare node     |A node that is online and synced but not configured to be an operator.  A warm spare requires manual intervention to become an active operator.|
-
