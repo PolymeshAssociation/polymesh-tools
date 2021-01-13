@@ -1,7 +1,5 @@
 # Polymesh Operator - Detailed Guide
 
-### **Strictly Confidential**
-
 ## About
 Copyright © 2020 Polymath Inc. All Rights Reserved.
 
@@ -12,18 +10,19 @@ means without the express written permission of Polymath Inc. (“Polymath”).
 THIS MANUAL IS PROVIDED “AS-IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OR CONDITIONS OF
 COMPLETENESS, ACCURACY, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. IN
-NO EVENT SHALL POLYMATH, ITS AFFILIATES OR ANY OF THEIR DIRECTORS, OFFICERS,
-EMPLOYEES OR AGENTS BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL OR
-CONSEQUENTIAL DAMAGES (INCLUDING DAMAGES FOR LOSS OF PROFITS, LOSS OF BUSINESS,
-LOSS OF USE OR DATA, INTERRUPTION OF BUSINESS AND THE LIKE), EVEN IF POLYMATH HAS
-BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES ARISING FROM ANY DEFECT OR ERROR
-IN THIS MANUAL.
+NO EVENT SHALL POLYMATH, ITS AFFILIATES OR ANY OF THEIR DIRECTORS, OFFICERS, EMPLOYEES OR AGENTS 
+BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES (INCLUDING DAMAGES FOR 
+LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OR DATA, INTERRUPTION OF BUSINESS AND THE LIKE), 
+EVEN IF POLYMATH HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES ARISING FROM ANY DEFECT OR 
+ERROR IN THIS MANUAL. POLYMATH ACCEPTS NO LIABILITY AND SHALL NOT BE LIABLE FOR ANY DAMAGES, 
+DIRECT OR INDIRECT, RESULTING FROM YOUR USE OF THIS MANUAL. IN THE EVENT POLYMATH, ITS AFFILIATES, 
+LICENSORS OR SUPPLIERS IS FOUND LIABLE, SUCH LIABILITY SHALL BE LIMITED TO 10 BARBADOS DOLLARS AND 
+THE PAYMENT OF SUCH AMOUNT TO YOU SHALL BE YOUR EXCLUSIVE REMEDY.
 
 Specifications and information contained in this manual are furnished for informational use only,
 and are subject to change without notice, and should not be construed as advice by Polymath.
 Recipient must obtain their own professional or specialist advice before taking, or refraining from,
-any action on the basis of the information contained in this manual. Polymath assumes no
-responsibility or liability for any errors or inaccuracies that may appear in this manual.
+any action on the basis of the information contained in this manual. 
 
 Polymath assumes no responsibility or liability for any errors or inaccuracies that may appear in
 this manual and gives no undertaking, and is under no obligation, to update this document if any
