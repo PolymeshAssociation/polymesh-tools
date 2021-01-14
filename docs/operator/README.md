@@ -141,7 +141,7 @@ attached to the operator node.
 The recommended secure operator setup for `mainnet` consists of the following:
 
 * A firewalled (both ingress and egress) active [operator node](#glossary) with configured session keys
-* A warm spare [operator node](#glossary) configured like an operator node but **without** session keys
+* A [warm spare operator node](#glossary) configured like an operator node but **without** session keys
 * Two or more Internet-facing [sentry nodes](#glossary)
 
 The operator node needs to only connect with its sentry nodes.
@@ -422,7 +422,7 @@ The sentry node can run with only the [common parameters](#common-parameters-for
 we recommended using the `--sentry` flag, but this feature is deprecated in upstream Substrate and not
 necessary for Polymesh nodes.
 
-You will need to [retrieve the sentry nodes' peer IDs](getting-the-identity-of-a-node) and public IP addresses (or
+You will need to [retrieve the sentry nodes' peer IDs](#getting-the-identity-of-a-node) and public IP addresses (or
 proxy/gateway address if behind a NAT firewall) and provide them to the operator node(s).
 
 It is recommended that you run at least two sentry nodes on different machines.
