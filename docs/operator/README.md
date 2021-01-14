@@ -53,9 +53,9 @@ apparent. The information in this document has not been independently verified.
 * [Securing the Instances](#securing-the-instances)
 * [Upgrading or Replacing a Node](#upgrading-or-replacing-a-node)
  * [Sentry Node Upgrades](#sentry-node-upgrades)
- * [Operator Node Upgrades](#operator-node upgrades)
+ * [Operator Node Upgrades](#operator-node-upgrades)
 * [Backing Up a Node](#backing-up-a-node)
-* [Auto Restarting Nodes](#auto-restarting nodes)
+* [Auto Restarting Nodes](#auto-restarting-nodes)
 * [Common Parameters for Running a Polymesh Node](#common-parameters-for-running-a-polymesh-node)
 * [Running a Sentry Node](#running-a-sentry-node)
 * [Running an Operator Node](#running-an-operator-node)
@@ -91,7 +91,7 @@ account that stores your bonded POLYX is called your Stash account and the accou
 what to do with the bonded POLYX is called your Controller account. Rewards that are generated
 for running an operator node can be paid to the Stash account or another specified account.
 
-Note that you do not need to bond all of the POLYX in your Stash account and you can always
+You do not need to bond all of the POLYX in your Stash account and you can always
 bond more POLYX later. However, withdrawing any bonded POLYX requires to wait for the duration
 of the unbonding period, which is currently 28 days.
 
@@ -460,8 +460,8 @@ keys are stored in a keystore on your operator server in the `/<base path>/chain
 directory. The filenames of those keys are the public key portion of the respective session key, and
 the contents of the files are the private key portion.
 
-NOTE: Before [activating your operator node](#setting-session-keys) please wait for all
-your nodes to be fully synced and make sure that everything is production ready.
+**Please wait before activating your operator node until all
+your nodes are be fully synced with the chain and make sure that everything is production ready.**
 
 ## Getting the Identity of a Node
 
@@ -531,7 +531,8 @@ In addition to the Polymesh metrics you should also monitor basic node metrics a
 
 ## Bonding POLYX
 
-**You should ensure that your Polymesh nodes have synced with the chain and are healthy before proceeding with this section**.
+**You should ensure that your Polymesh nodes have synced with the chain and are healthy before proceeding with
+this section. Failure to do so may result in operator penalties.**
 
 To become an operator on Polymesh, you need to bond (lock) some POLYX in the system. The
 account that stores your bonded funds is called the stash account and the account that decides
@@ -557,7 +558,7 @@ To bond your funds,
     more than this.
 * **Controller account**: Select the Controller account created earlier. This account will also need a small
     amount of POLYX in order to start and stop validating.
-* **Value bonded**: How much POLYX from the Stash account you want to bond/stake. Note that you
+* **Value bonded**: How much POLYX from the Stash account you want to bond/stake. You
     do not need to bond all of the POLYX in that account. Also, note that you can
     always bond more POLYX later. However, withdrawing any bonded amount requires
     to wait for the duration of the unbonding period.
@@ -621,15 +622,15 @@ before the next session) may result in penalties.**
 
 |Term|Definition|
 |----|----------|
+|Controller key      |Key used to manage bonded funds, vote with bonded funds and do similar actions on chain.|
 |Equivocation        |When an operator node commits to two or more conflicting states.|
 |Era                 |An Era is a whole number of sessions. It is the period over which operator and nominator sets are calculated, and rewards paid out.|
 |Immortal transaction|A transaction that is valid at any time.|
 |Operator node       |Operator nodes are permissioned network participants responsible for producing new blocks and finalising the block chain.|
 |Sentry node         |Sentry nodes are full archive nodes which operator nodes use as a proxy to the wider network, limiting the operator nodes exposure to the public internet and providing data redundancy.|
 |Session             |A session is a period of time that has a constant set of operators. Operators can only join or exit the operator set at a session change.|
-|Warm spare node     |A node that is online and synced but not configured to be an operator.  A warm spare requires manual intervention to become an active operator.|
 |Session keys        |Keys that an operator node uses to sign data needed for consensus.|
-|Controller key      |Key used to manage bonded funds, vote with bonded funds and do similar actions on chain.|
 |Stash key           |Account where the operator rewards are sent.|
+|Warm spare node     |A node that is online and synced but not configured to be an operator.  A warm spare requires manual intervention to become an active operator.|
 
 
