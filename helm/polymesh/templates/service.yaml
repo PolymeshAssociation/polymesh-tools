@@ -1,0 +1,80 @@
+{{- $root := . -}}
+{{- range $i, $e := until ( .Values.replicaCount | int ) }}
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+{{- if $root.Values.service.polymesh.annotations }}
+  annotations: {{ toYaml $root.Values.service.polymesh.annotations | nindent 2 }}
+{{- end }}
+  name: {{ template "polymesh.fullname" $root }}-polymesh-{{ $i }}
+  labels:
+    {{- include "polymesh.labels" $root | nindent 4 }}
+spec:
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ template "polymesh.fullname" $root }}-{{ $i }}
+    {{- include "polymesh.selectorLabels" $root | nindent 4 }}
+  type: {{ $root.Values.service.polymesh.type }}
+  ports:
+    - name: polymesh
+      protocol: TCP
+      port: {{ $root.Values.service.polymesh.port }}
+      targetPort: polymesh
+      {{- if (eq $root.Values.service.polymesh.type "NodePort") }}
+      nodePort: {{ $root.Values.service.polymesh.nodePort }}
+      {{- end }}
+{{- end }}
+
+---
+
+{{- if .Values.service.jsonrpc.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.service.jsonrpc.annotations }}
+  annotations: {{ toYaml .Values.service.jsonrpc.annotations | nindent 2 }}
+{{- end }}
+  name: {{ template "polymesh.fullname" . }}-jsonrpc
+  labels:
+    {{- include "polymesh.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "polymesh.selectorLabels" . | nindent 4 }}
+  type: {{ .Values.service.jsonrpc.type }}
+  ports:
+    - name: jsonrpc
+      protocol: TCP
+      port: {{ .Values.service.jsonrpc.port }}
+      targetPort: jsonrpc
+      {{- if (eq .Values.service.jsonrpc.type "NodePort") }}
+      nodePort: {{ .Values.service.jsonrpc.nodePort }}
+      {{- end }}
+{{- end }}
+
+---
+
+{{- if .Values.service.wsrpc.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.service.wsrpc.annotations }}-wsrpc
+  annotations: {{ toYaml .Values.service.wsrpc.annotations | nindent 2 }}
+{{- end }}
+  name: {{ template "polymesh.fullname" . }}-wsrpc
+  labels:
+    {{- include "polymesh.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "polymesh.selectorLabels" . | nindent 4 }}
+  type: {{ .Values.service.wsrpc.type }}
+  ports:
+    - name: wsrpc
+      protocol: TCP
+      port: {{ .Values.service.wsrpc.port }}
+      targetPort: wsrpc
+      {{- if (eq .Values.service.wsrpc.type "NodePort") }}
+      nodePort: {{ .Values.service.wsrpc.nodePort }}
+      {{- end }}
+{{- end }}
+

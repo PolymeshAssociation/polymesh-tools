@@ -1,0 +1,203 @@
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "polymesh.fullname" . }}
+  labels:
+    {{- include "polymesh.labels" . | nindent 4 }}
+spec:
+  {{- if and ( has "--operator" .Values.polymesh.args ) ( gt ( int .Values.replicaCount ) ( int 1 ) ) }}
+    {{ fail ".Values.replicaCount must not be greater than 1 for operator deployments" }}
+  {{- else }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "polymesh.selectorLabels" . | nindent 6 }}
+  serviceName: polymesh
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: chain-data
+    spec:
+      # Todo:  make provisioner, size configurable
+      {{- if .Values.persistence.storageClassName }}
+      storageClassName: {{ .Values.persistence.storageClassName }}
+      {{- end }}
+      accessModes:
+        - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: {{ .Values.persistence.size }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.service.prometheus.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.prometheus.port }}"
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- toYaml .Values.extraLabels | nindent 8 }}
+        {{- if not .Values.extraLabels.host }}
+        host: "polymesh-{{ trunc 12 ( print .Values | sha256sum ) }}"
+        {{- end }}
+        {{- include "polymesh.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: 120
+      initContainers:
+        {{- if has "--operator" .Values.polymesh.args }}
+        - name: set-secrets
+          image: debian:buster
+          imagePullPolicy: IfNotPresent
+          command:
+            - bash
+          args:
+            - /opt/setKeys/setKeys.sh
+          volumeMounts:
+            - name: set-operator-keys
+              mountPath: /opt/setKeys
+            - name: operator-keys
+              mountPath: /operator-keys
+            - name: operator-keys-ephemeral
+              mountPath: /operator-keys-ephemeral
+        {{- end }}
+        {{- if gt (len .Values.extraInitContainers) 0 }}
+          {{- toYaml .Values.extraInitContainers | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: polymesh
+          securityContext:
+            {{- toYaml .Values.securityContext.polymesh | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default ( printf "distroless-%s" .Chart.AppVersion ) }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /usr/local/bin/polymesh
+          args:
+            {{- range .Values.polymesh.args }}
+            - {{ . }}
+            {{- end }}
+            {{- if .Values.nodeKey.existingSecret }}
+            - --node-key-file
+            -   /nodeKey/{{ .Values.nodeKey.filename }}
+            {{- end }}
+          ports:
+            - name: polymesh
+              containerPort: {{ .Values.service.polymesh.port }}
+              protocol: TCP
+            {{- if .Values.service.prometheus.enabled }}
+            - name: prometheus
+              containerPort: {{ .Values.service.prometheus.port }}
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.service.jsonrpc.enabled }}
+            - name: jsonrpc
+              containerPort: {{ .Values.service.jsonrpc.port }}
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.service.wsrpc.enabled }}
+            - name: wsrpc
+              containerPort: {{ .Values.service.wsrpc.port }}
+              protocol: TCP
+            {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.startupProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.persistence.enabled }}
+            - name: chain-data
+              mountPath: /var/lib/polymesh
+            {{- end }}
+            {{- if has "--operator" .Values.polymesh.args }}
+            - name: operator-keys-ephemeral
+              mountPath: /var/lib/polymesh/chains/alcyone/keystore
+            {{- end }}
+            {{- if .Values.nodeKey.existingSecret }}
+            - name: node-key
+              mountPath: /nodeKey
+            {{- end }}
+        {{- if and (has "--reserved-only" .Values.polymesh.args) .Values.peerUpdaterSideCar }}
+        - name: peer-updater
+          securityContext:
+            {{- toYaml .Values.securityContext.peerUpdater | nindent 12 }}
+          image: polymathnet/polymesh-peer-updater:latest
+          imagePullPolicy: Always
+          command:
+            - /usr/local/bin/updater
+          args:
+            - /var/lib/polymesh_peers/reserved_peers.txt
+          volumeMounts:
+            - name: reserved-peers
+              mountPath: /var/lib/polymesh_peers
+        {{- end }}
+        {{- if gt (len .Values.extraSidecarContainers) 0 }}
+        {{- toYaml .Values.extraSidecarContainers | nindent 8 }}
+        {{- end }}
+      volumes:
+        {{- if gt (len .Values.extraVolumes) 0 }}
+        {{- toYaml .Values.extraVolumes | nindent 8 }}
+        {{- end }}
+        {{- if .Values.nodeKey.existingSecret }}
+        - name: node-key
+          secret:
+            secretName: {{ .Values.nodeKey.existingSecret }}
+        {{- end }}
+        {{- if has "--operator" .Values.polymesh.args }}
+        - name: set-operator-keys
+          configMap:
+            name: {{ include "polymesh.fullname" . }}-set-operator-keys
+        - name: operator-keys
+          secret:
+            secretName: {{ required "A valid .Values.operatorKeys.existingSecret value is required!" .Values.operatorKeys.existingSecret }}
+        - name: operator-keys-ephemeral
+          emptyDir: {}
+        {{- end }}
+        {{- if and (has "--reserved-only" .Values.polymesh.args) .Values.peerUpdaterSideCar }}
+        - name: reserved-peers
+          configMap:
+            name: {{ include "polymesh.fullname" . }}-reserved-peers
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+      {{- if .Values.affinity }}
+        {{- with .Values.affinity }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- else }}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - {{ include "polymesh.name" . }}
+                  - key: app.kubernetes.io/instance
+                    operator: In
+                    values:
+                      - {{ .Release.Name }}
+              topologyKey: "kubernetes.io/hostname"
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
