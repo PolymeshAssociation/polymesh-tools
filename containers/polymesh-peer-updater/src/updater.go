@@ -3,14 +3,14 @@ package main
 import (
     "fmt"
     "os"
-    "github.com/AdamSLevy/jsonrpc2"
+    "github.com/AdamSLevy/jsonrpc2/14"
     "log"
     "github.com/fsnotify/fsnotify"
     "bufio"
 )
 
 func addReservedPeer(peer string) {
-    fmt.Println("Adding peer %s", peer )
+    fmt.Println("Adding peer", peer )
     var c jsonrpc2.Client
     params := []string{peer}
     var result int

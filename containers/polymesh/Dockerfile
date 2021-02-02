@@ -1,10 +1,11 @@
 ARG golangbase=1.15
 FROM golang:${golangbase} as gobuild
 
-ADD src/health-check.go /opt/health-check/health-check.go
+ADD src/ /opt/health-check/
 WORKDIR /opt/health-check
-RUN go get github.com/AdamSLevy/jsonrpc2 && \
-    go build
+RUN ls -a && \
+    go build && \
+    chmod 0755 /opt/health-check/polymesh-health-check
 
 FROM debian:buster as releasefetch
 
@@ -16,7 +17,7 @@ FROM gcr.io/distroless/cc
 USER 4001:4001
 
 COPY --chown=4001:4001 --from=releasefetch /opt/files/                    /
-COPY --chown=4002:4002 --from=gobuild      /opt/health-check/health-check /usr/local/bin/check
+COPY --chown=4002:4002 --from=gobuild      /opt/health-check/polymesh-health-check /usr/local/bin/check
 
 ENTRYPOINT ["/usr/local/bin/polymesh"]
 CMD [ "-d", "/var/lib/polymesh" ]
