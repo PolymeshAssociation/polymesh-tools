@@ -1,10 +1,22 @@
 # Polymesh node helm chart
 
-This helm chart deployis Polymesh nodes (operators, sentries, etc) in Kubernetes.
+This helm chart deploys Polymesh nodes (operators, sentries, etc) in Kubernetes.
+
+
+## Installation
+
+* Add the Polymath chart repository:
+
+```
+helm repo add polymath https://charts.polymesh.live/charts/
+helm repo up
+```
 
 ## Examples
 
 ### Sentries
+
+* Create the chart configuration file `sentries-values.yaml`
 
 ```
 ---
@@ -30,14 +42,28 @@ polymesh:
     -   archive
 ```
 
+* Install the sentries
+
+```
+helm install --namespace my-namespace polymesh-sentry polymath/polymesh -f sentries-values.yaml
+```
+
 This setup will create two sentries (number controlled by the `replicaCount` value) with
 an arbitrary `peerId`.  Each replica will also have a separate `LoadBalancer` service so
-that you can deterministically pair the `peerId` and external address of the replica.
+that you can deterministically pair the `peerId` and external address of the replicas.
 
 You will need both of them to configure the operator nodes that connect to them.
 
 
 ### Operator
+
+* Create the operator keys out of band and load them into a kubernetes secret
+
+```
+kubectl create secret generic --namespace my-namespace operator-keys --from-file=path/to-keys/
+```
+
+* Create the chart configuration file `operator-values.yaml`
 
 ```
 ---
@@ -70,6 +96,12 @@ polymesh:
     -   '"4096"'
     - --pruning
     -   archive
+```
+
+* Install the operator
+
+```
+helm install --namespace my-namespace polymesh-operator polymath/polymesh -f operator-values.yaml
 ```
 
 This will create an operator node and assign it the keys in the kubernetes secret `operator-keys`.  The secret's
