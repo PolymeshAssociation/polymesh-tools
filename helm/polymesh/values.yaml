@@ -27,6 +27,7 @@ polymesh:
     -   '"4096"'
     - --pruning
     -   archive
+  extraEnv: []
 
 operatorKeys: {}
   # existingSecret:
