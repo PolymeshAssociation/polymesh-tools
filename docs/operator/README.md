@@ -49,7 +49,7 @@ apparent. The information in this document has not been independently verified.
  * [Sentry Nodes High Availability](#sentry-nodes-high-availability)
  * [Operator Node High Availability](#operator-node-high-availability)
 * [Getting the Polymesh Node Software](#getting-the-polymesh-node-software)
-* [Node Resource requirements](#node-resource-requirements)
+* [Node Resource Requirements](#node-resource-requirements)
 * [Securing the Instances](#securing-the-instances)
 * [Upgrading or Replacing a Node](#upgrading-or-replacing-a-node)
  * [Sentry Node Upgrades](#sentry-node-upgrades)
@@ -242,19 +242,21 @@ There are a number of ways to get and deploy the node binary:
   the runtime files as they are already included in the binary.
 * Build your own binary from the [release branch of our source code](https://github.com/PolymathNetwork/Polymesh/tree/alcyone)
 
-## Node Resource requirements
+## Node Resource Requirements
 
 The following resources should be allocated to each Polymesh sentry and operator node:
 
 | Resource | Minimum Value | Recommended Value |
 | ---------| --------------| ----------------- |
 | CPU      | 2 CPU         | 4 CPU             |
-| RAM      | 8 GB          | 8+ GB              |
+| RAM      | 8 GB          | 8+ GB             |
 | Storage  | 80 GB SSD     | 100+ GB low latency SSD (e.g. local NVMe)|
 
 The storage requirements will increase over time as the blockchain grows. Sufficient spare storage
 (or expandable volumes) and adequate monitoring measures should be put in place to ensure continued
-operations of the node.
+operations of the node.  A long-running node will keep a large amount of write-ahead logs (WAL) in
+the database directory.  These logs are compacted on node restart.  It is recommended that you reserve
+an additional 40GB of disk space for the WAL.
 
 It is not recommended that sentries and operators share the same resources, i.e. it is preferrable to
 run two 2 CPU/8 GB RAM instances with one Polymesh node each than running one 4 CPU/16 GB RAM instance
@@ -440,7 +442,12 @@ the [common parameters](#common-parameters-for-running-a-polymesh-node):
   RPC method.  Failure to provide peers via either this parameter or the RPC method will cause the operator node
   to remain disconnected from the chain.
 
-Next call the `author_rotateKeys` method on the operator to generate session keys for your operator node:
+Next we will generate the node's session keys.
+
+### Generating the session keys with access to the node's RPC port
+
+The `author_rotateKeys` method can be called against a running operator node to generate session keys.
+
 
 ```
 $ curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "author_rotateKeys", "params":[]}' http://localhost:9933 | jq -r .result
@@ -462,6 +469,12 @@ the contents of the files are the private key portion.
 
 **Please wait before activating your operator node until all
 your nodes are be fully synced with the chain and make sure that everything is production ready.**
+
+### Generating the session keys in containerised Polymesh nodes
+
+Our official container images contain a small binary to rotate the session keys without requiring the installation
+of curl either in the container itself or in a sidecar.  This binary is located in `/usr/local/bin/rotate` and
+when executed will produce a newline-terminated string containing the public session keys used for bonding.
 
 ## Getting the Identity of a Node
 
