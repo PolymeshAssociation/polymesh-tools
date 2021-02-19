@@ -415,8 +415,7 @@ To run a polymesh node we recommend that you make use of the following options:
   in-memory cache above the default `128` MiB.  On a node with 8GB RAM available a reasonable value is in the
   ballpark of `4096`.
 
-Note - the (optional) `<name>` above will be public at:  
-https://stats.polymesh.live/
+Note - the (optional) `<name>` parameter above will be publicly visible if sending telemetry to Polymath's servers is enabled (on by default).
 
 ## Running a Sentry Node
 
