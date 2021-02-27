@@ -3,7 +3,7 @@ package main
 import (
     "fmt"
     "os"
-    "github.com/AdamSLevy/jsonrpc2/14"
+    "github.com/AdamSLevy/jsonrpc2/v14"
     "log"
     "github.com/fsnotify/fsnotify"
     "bufio"
