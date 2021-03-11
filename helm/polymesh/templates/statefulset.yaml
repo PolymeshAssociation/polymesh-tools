@@ -56,6 +56,7 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       terminationGracePeriodSeconds: 120
       initContainers:
+        {{- if .Values.operatorKeys.requireSecret }}
         {{- if has "--operator" .Values.polymesh.args }}
         - name: set-secrets
           image: debian:buster
@@ -71,6 +72,7 @@ spec:
               mountPath: /operator-keys
             - name: operator-keys-ephemeral
               mountPath: /operator-keys-ephemeral
+        {{- end }}
         {{- end }}
         {{- if gt (len .Values.extraInitContainers) 0 }}
           {{- toYaml .Values.extraInitContainers | nindent 8 }}
@@ -125,6 +127,7 @@ spec:
             - name: chain-data
               mountPath: /var/lib/polymesh
             {{- end }}
+            {{- if .Values.operatorKeys.requireSecret }}
             {{- if has "--operator" .Values.polymesh.args }}
             - name: operator-keys-ephemeral
               mountPath: /var/lib/polymesh/chains/alcyone/keystore
@@ -132,6 +135,7 @@ spec:
             {{- if .Values.nodeKey.existingSecret }}
             - name: node-key
               mountPath: /nodeKey
+            {{- end }}
             {{- end }}
         {{- if and (has "--reserved-only" .Values.polymesh.args) .Values.peerUpdaterSideCar }}
         - name: peer-updater
@@ -159,6 +163,7 @@ spec:
           secret:
             secretName: {{ .Values.nodeKey.existingSecret }}
         {{- end }}
+        {{- if .Values.operatorKeys.requireSecret }}
         {{- if has "--operator" .Values.polymesh.args }}
         - name: set-operator-keys
           configMap:
@@ -168,6 +173,7 @@ spec:
             secretName: {{ required "A valid .Values.operatorKeys.existingSecret value is required!" .Values.operatorKeys.existingSecret }}
         - name: operator-keys-ephemeral
           emptyDir: {}
+        {{- end }}
         {{- end }}
         {{- if and (has "--reserved-only" .Values.polymesh.args) .Values.peerUpdaterSideCar }}
         - name: reserved-peers

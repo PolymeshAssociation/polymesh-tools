@@ -29,8 +29,9 @@ polymesh:
     -   archive
   extraEnv: []
 
-operatorKeys: {}
-  # existingSecret:
+operatorKeys:
+  requireSecret: true
+  # existingSecret: <string>
 
 nodeKey:
   filename: node_key.ed25519
