@@ -91,6 +91,9 @@ spec:
             - --node-key-file
             -   /nodeKey/{{ .Values.nodeKey.filename }}
             {{- end }}
+            {{- range .Values.polymesh.additionalArgs }}
+            - {{ . }}
+            {{- end }}
           env:
             {{- toYaml .Values.polymesh.extraEnv | nindent 12 }}
           ports:
