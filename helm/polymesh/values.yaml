@@ -27,6 +27,8 @@ polymesh:
     -   '"4096"'
     - --pruning
     -   archive
+    - --chain
+    -   itn
   additionalArgs: []
   extraEnv: []
 
