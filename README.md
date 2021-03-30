@@ -17,8 +17,8 @@ reproduce our official images.
 
 ## Docker
 
-We have included sample `docker-compose` configuration files for operators and sentries.  These
-asume that the operators and sentries are deployed to separate hosts, but can be modified to deploy
+We have included sample `docker-compose` configuration files for operators.  These
+asume that the operators are deployed to separate hosts, but can be modified to deploy
 to a single host or to a pool of hosts (if using Swarm).
 
 ## Kubernetes

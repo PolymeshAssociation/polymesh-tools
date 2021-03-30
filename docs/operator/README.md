@@ -49,18 +49,15 @@ apparent. The information in this document has not been independently verified.
   - [Network Architecture](#network-architecture)
     - [Firewall traffic](#firewall-traffic)
   - [High Availability](#high-availability)
-    - [Sentry Nodes High Availability](#sentry-nodes-high-availability)
     - [Operator Node High Availability](#operator-node-high-availability)
   - [Getting the Polymesh Node Software](#getting-the-polymesh-node-software)
   - [Node Resource Requirements](#node-resource-requirements)
   - [Securing the Instances](#securing-the-instances)
   - [Upgrading or Replacing a Node](#upgrading-or-replacing-a-node)
-    - [Sentry Node Upgrades](#sentry-node-upgrades)
     - [Operator Node Upgrades](#operator-node-upgrades)
   - [Backing Up a Node](#backing-up-a-node)
   - [Auto Restarting Nodes](#auto-restarting-nodes)
   - [Common Parameters for Running a Polymesh Node](#common-parameters-for-running-a-polymesh-node)
-  - [Running a Sentry Node](#running-a-sentry-node)
   - [Running an Operator Node](#running-an-operator-node)
     - [Generating the session keys with access to the node's RPC port](#generating-the-session-keys-with-access-to-the-nodes-rpc-port)
     - [Generating the session keys in containerised Polymesh nodes](#generating-the-session-keys-in-containerised-polymesh-nodes)
@@ -90,7 +87,7 @@ is on-chain and managed via the Polymesh Improvement Proposal (PIP) mechanism.
 
 ## Becoming an Operator
 
-To become an operator on Polymesh, you need to bond (lock) a minimum of 5 million POLYX in the
+To become an operator on Polymesh, you may need to bond (lock) POLYX in the
 system. This facilitates the economic incentives that the security of Polymesh relies on. The
 account that stores your bonded POLYX is called your Stash account and the account that decides
 what to do with the bonded POLYX is called your Controller account. Rewards that are generated
@@ -137,30 +134,19 @@ kept very securely. Consider these keys to be a semi-cold wallet.
 
 ### Stash Key
 
-This is the account where the operator rewards are sent. This should be a cold wallet, never
-attached to the operator node.
-
+This is the account which holds the POLYX that has been bonded and optionally where the operator rewards
+are sent. This should be a cold wallet, never attached to the operator node.
 
 ## Network Architecture
 
-The recommended secure operator setup for `mainnet` consists of the following:
+The recommended secure operator setup for `itn` consists of the following:
 
 * A firewalled (both ingress and egress) active [operator node](#glossary) with configured session keys
 * A [warm spare operator node](#glossary) configured like an operator node but **without** session keys
-* Two or more Internet-facing [sentry nodes](#glossary)
 
-The operator node needs to only connect with its sentry nodes.
+A *minimum* recommended `testnet` setup would include just a single one operator node.
 
-Sentry nodes are essentially full archive nodes that act as the gatekeeper between your operator
-node and the outside world. This setup is intended to isolate the operator node from public
-networks, mitigating the risk of a DDoS and other attacks on your operator node.
-
-The operator and sentry nodes do not need to be co-located, but the network between the nodes
-should be secured and should allow two-way traffic between the sentries and operators. This may
-be achieved via solutions like firewalls, VPN, or a cloud provider’s private networking and peering
-solutions. Traffic encryption is preferred but not required.
-
-A *minimum* recommended `testnet` setup would include one operator node and one sentry node.
+It is possible to limit the operator node to connecting to just a set of other trusted nodes via the `--reserved-only` and `--reserved-nodes` flags if you need to limit the operators connectivity to the public internet.
 
 ### Firewall traffic
 
@@ -172,27 +158,11 @@ To operate properly your Polymesh nodes should have at least the following traff
     NTP server.
   * **Port 443 egress (HTTPS)** (optional but recommended): Used to send basic telemetry
     to Polymath servers.
-* Sentry nodes:
-  * **Libp2p WAN ingress** (default port 30333): The sentry nodes should be well connected and
-    accept incoming p2p events.
-  * **Libp2p WAN egress**: The sentry nodes should be able to push p2p events from WAN to the
-    operator nodes and vice-versa.
 * Operator nodes:
-  * **Libp2p ingress/egress from/to sentries**: Operator nodes should be able to have two-way
-    communication with their sentry nodes.
+  * **Libp2p ingress/egress**: Operator nodes should be able to send and receive p2p events from WAN or a trustedset
+    of other nodes that do have WAN connectivity.
 
 ## High Availability
-
-### Sentry Nodes High Availability
-
-The internet-facing sentry nodes should be highly available. An operator node should have at least
-two sentry nodes. Two or more operator nodes may share their sentry nodes, but the amount of sentry
-nodes should be scaled to provide sufficient redundancy / load balancing / DDoS protection for their assigned
-operator nodes.
-
-An operator node needs at least one sentry online at all times so you must make
-sure that your sentry nodes are highly available. You can set up as many active sentry nodes for
-your operator nodes as you like.
 
 ### Operator Node High Availability
 
@@ -229,7 +199,7 @@ node goes down. Please see [Upgrading or Replacing a Node](#upgrading-or-replaci
 
 ## Getting the Polymesh Node Software
 
-Both sentry and operator nodes use the same binary and only differ in the parameters used to
+Both non-operator and operator nodes use the same binary and only differ in the parameters used to
 run them.
 
 There are a number of ways to get and deploy the node binary:
@@ -249,7 +219,7 @@ There are a number of ways to get and deploy the node binary:
 
 ## Node Resource Requirements
 
-The following resources should be allocated to each Polymesh sentry and operator node:
+The following resources should be allocated to each Polymesh non-operator and operator node:
 
 | Resource | Minimum Value | Recommended Value |
 | ---------| --------------| ----------------- |
@@ -263,7 +233,7 @@ operations of the node.  A long-running node will keep a large amount of write-a
 the database directory.  These logs are compacted on node restart.  It is recommended that you reserve
 an additional 40GB of disk space for the WAL.
 
-It is not recommended that sentries and operators share the same resources, i.e. it is preferrable to
+It is not recommended that more than one node share the same resources, i.e. it is preferrable to
 run two 2 CPU/8 GB RAM instances with one Polymesh node each than running one 4 CPU/16 GB RAM instance
 with two Polymesh nodes.
 
@@ -286,19 +256,6 @@ comprehensive.  Node operators are responsible that the security of their nodes 
 with current best practices.
 
 ## Upgrading or Replacing a Node
-
-### Sentry Node Upgrades
-
-The upgrade process for sentry nodes varies depending on your network topology.
-
-* If you have only a single sentry node (i.e. when running the minimal `testnet` setup) or low
-  redundancy for your sentry nodes it is recommended to create a replacement sentry node first,
-  connect the operator node to it, and then terminate the original sentry node (or do a rolling
-  upgrade if more than one sentry node requires upgrading). All precautions outlined in
-  the [High Availability](#high-availability) section should be observed.
-* If you have sufficient redundancy you may just do a rolling upgrade of your sentries. Do ensure
-  that your operator nodes reconnect to the upgraded sentries before proceeding to upgrading
-  the next sentry.
 
 ### Operator Node Upgrades
 
@@ -418,23 +375,13 @@ To run a polymesh node we recommend that you make use of the following options:
 * `--name <name>` (optional but recommended): Human-readable name of the nodes that is reported to the telemetry services
 * `--pruning archive`: Ensure that the node maintains a full copy of the blockchain
 * `--chain itn`: Run an ITN node. If this parameter is excluded, the default is to connect to the Alcyone network
+* `--wasm-execution compiled`: Use compiled wasm to improve performance
 * `--base-path <path>` (optional): Specify where Polymesh will look for its DB files and keystore
 * `--db-cache <cache size in MiB>` (optional):  Improve the performance of the polymesh process by increasing its
   in-memory cache above the default `128` MiB.  On a node with 8GB RAM available a reasonable value is in the
   ballpark of `4096`.
 
-Note - the (optional) `<name>` parameter above will be publicly visible if sending telemetry to Polymath's servers is enabled (on by default).
-
-## Running a Sentry Node
-
-The sentry node can run with only the [common parameters](#common-parameters-for-running-a-polymesh-node).  Previously
-we recommended using the `--sentry` flag, but this feature is deprecated in upstream Substrate and not
-necessary for Polymesh nodes.
-
-You will need to [retrieve the sentry nodes' peer IDs](#getting-the-identity-of-a-node) and public IP addresses (or
-proxy/gateway address if behind a NAT firewall) and provide them to the operator node(s).
-
-It is recommended that you run at least two sentry nodes on different machines.
+Note - the `<name>` parameter above will be publicly visible when sending telemetry to Polymath's servers is enabled (on by default).
 
 ## Running an Operator Node
 
@@ -442,19 +389,18 @@ To run an operator node you will need to use the following options in additon to
 the [common parameters](#common-parameters-for-running-a-polymesh-node):
 
 * `--operator`: Enable the operator flag on the node.
+
+If you wish to connect to just a trusted set of other nodes, you can use the below flags to control this:
+
 * `--reserved-only`: Only connect to reserved peers.
 * `--reserved-nodes` (conditionally optional - see notes): This parameter takes a space separated list of libp2p peer addresses
-  in the form of `/ip4/<SENTRY_IP_ADDRESS>/tcp/30333/p2p/<SENTRY_NODE_IDENTITY>` or `/dns4/<SENTRY_RESOLVABLE_HOSTNAME>/tcp/30333/p2p/<SENTRY_NODE_IDENTITY>` to which
-  the operator node will connect.  If left out then the peers must be provided via the `system_addReservedPeer`
-  RPC method.  Failure to provide peers via either this parameter or the RPC method will cause the operator node
-  to remain disconnected from the chain.
+  in the form of `/ip4/<SENTRY_IP_ADDRESS>/tcp/30333/p2p/<SENTRY_NODE_IDENTITY>` or `/dns4/<SENTRY_RESOLVABLE_HOSTNAME>/tcp/30333/p2p/<SENTRY_NODE_IDENTITY>` to which the operator node will connect.  If left out then the peers must be provided via the `system_addReservedPeer` RPC method.  Failure to provide peers via either this parameter or the RPC method will cause the operator node to remain disconnected from the chain.
 
 Next we will generate the node's session keys.
 
 ### Generating the session keys with access to the node's RPC port
 
 The `author_rotateKeys` method can be called against a running operator node to generate session keys.
-
 
 ```
 $ curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "author_rotateKeys", "params":[]}' http://localhost:9933 | jq -r .result
@@ -533,7 +479,7 @@ The basic health of a node can be assessed by monitoring the following metrics:
 | `polymesh_block_height{status="finalized"}` | Finalised block number | +/- 3 from rest of the network | The block number for the rest of the network should be fetched from an external source. |
 | `polymesh_block_height{status="best"}` | Best block time | 6s +/- 2s | The block time is the difference between the best block timestamps.  The ideal mean time is 6 seconds, but some jitter (less than 2s) is acceptable due to network latency |
 | `polymesh_ready_transactions_number` | Transactions in ready queue | 0-150 | A healthy node should have zero or near-zero transactions in its ready queue.  A ready queue with a growing number of transactions can be an idicator of excessive node latency |
-| `polymesh_sub_libp2p_peers_count` | Number of peers | Number of sentries for operators, >2 for sentry nodes|An operator node should have a deterministic number of peers equal to the number of its sentries. A sentry node should have at least two peers (its operator and another network node) |
+| `polymesh_sub_libp2p_peers_count` | Number of peers | Number of other nodes for operators | An operator node should maintain connectivity to other operators and either the public internet or a subset of trusted peers |
 
 We have published a Grafana dashboard to monitor the metrics exposed by the Polymesh node via its Prometheus exporter.
 You may download it [here](https://github.com/PolymathNetwork/polymesh-tools/tree/main/grafana). In order to use
@@ -547,7 +493,7 @@ In addition to the Polymesh metrics you should also monitor basic node metrics a
 | Free disk space           | 30 GB+ or > 20% volume capacity | There should always be some free disk space for the Polymesh node to consume. |
 | Free RAM                  | 1 GB+ | Spikes in RAM usage are acceptable but on average, there should be at least 1 GB of free RAM available on the system for the node to consume.|
 | CPU usage                 | 5-50% (overall) | This is the overall CPU usage and not per core usage. Occasional spikes above 50% are acceptable but more cores should be added if the CPU usage continuously stays above 50%. |
-| Network connectivity      | <1% packet loss | This mainly applies to sentry nodes. They should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new sentry nodes should be deployed. |
+| Network connectivity      | <1% packet loss | Nodes should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new nodes should be deployed, or the operators connectivity limited to trusted nodes. |
 
 ## Bonding POLYX
 
@@ -558,7 +504,7 @@ To become an operator on Polymesh, you need to bond (lock) some POLYX in the sys
 account that stores your bonded funds is called the stash account and the account that decides
 what to do with the bonded funds is called the controller account.
 
-**For** Alcyone `mainnet` **It is highly recommended that you make your controller and stash accounts be two separate
+*For ITN* `itn` **It is highly recommended that you make your controller and stash accounts be two separate
 accounts.** For this, you will create two accounts and make sure each of them has at least enough
 funds to pay the fees for making transactions. Keep most of your funds in the stash account since
 it is meant to be the custodian of your staking funds.
@@ -567,7 +513,7 @@ it is meant to be the custodian of your staking funds.
 
 To bond your funds,
 
-* Go to [Staking section](https://alcyone-app.polymesh.live/#/staking/actions)
+* Go to [Staking section](https://itn-app.polymesh.live/#/staking/actions)
 * Click on "Account Actions"
 * Click on the "+”Stash” button
 
@@ -600,7 +546,7 @@ those keys.
 
 To set your Session Keys,
 
-* Go to [Staking section](https://alcyone-app.polymesh.live/#/staking/actions)
+* Go to [Staking section](https://itn-app.polymesh.live/#/staking/actions)
 * Click on "Account Actions"
 * Click on the "Session Key" button on the bonding account you generated earlier
 * Enter the result of `author_rotateKeys` that we saved earlier in the field and click "Set Session Key"
@@ -630,11 +576,11 @@ session.
 
 To stop being an operator on the Polymesh chain,
 
-* Go to [Staking > Account Actions](https://alcyone-app.polymesh.live/#/staking/actions)
+* Go to [Staking > Account Actions](https://itn-app.polymesh.live/#/staking/actions)
 * Click on "Stop Validating" against your bonding account
 
 You will be removed from the operator set in the next session. You can then safely terminate all
-your operator and sentry nodes. **failure to terminate safely (e.g. by terminating
+your operator nodes. **failure to terminate safely (e.g. by terminating
 before the next session) may result in penalties.**
 
 
