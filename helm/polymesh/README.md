@@ -109,8 +109,6 @@ polymesh:
 
 ```
 helm install --namespace my-namespace polymesh-operator polymath/polymesh -f operator-values.yaml
-### Operator with arbitrary session keys
-
 ```
 
 This will create an operator node and assign it the keys in the kubernetes secret `operator-keys`.  The secret's
