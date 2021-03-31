@@ -23,6 +23,5 @@ to a single host or to a pool of hosts (if using Swarm).
 
 ## Kubernetes
 
-The Helm chart published under `helm/polymesh` can be used to easily deploy operator or sentry nodes on a
-Kubernetes cluster.
+The Helm chart published under `helm/polymesh` can be used to easily deploy Polymesh nodes in a Kubernetes cluster.
 
