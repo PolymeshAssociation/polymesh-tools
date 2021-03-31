@@ -42,7 +42,9 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- toYaml .Values.extraLabels | nindent 8 }}
+        {{- if .Values.extraLabels }}
+          {{- toYaml .Values.extraLabels | nindent 8 }}
+        {{- end }}
         {{- if not .Values.extraLabels.host }}
         host: "polymesh-{{ trunc 12 ( print .Values | sha256sum ) }}"
         {{- end }}
