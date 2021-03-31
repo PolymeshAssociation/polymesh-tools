@@ -139,14 +139,14 @@ are sent. This should be a cold wallet, never attached to the operator node.
 
 ## Network Architecture
 
-The recommended secure operator setup for `itn` consists of the following:
+The recommended secure operator setup for ITN / Mainnet consists of the following:
 
-* A firewalled (both ingress and egress) active [operator node](#glossary) with configured session keys
+* An active [operator node](#glossary) with configured session keys
 * A [warm spare operator node](#glossary) configured like an operator node but **without** session keys
 
-A *minimum* recommended `testnet` setup would include just a single one operator node.
+A *minimum* recommended Alcyone setup would include just a single operator node.
 
-It is possible to limit the operator node to connecting to just a set of other trusted nodes via the `--reserved-only` and `--reserved-nodes` flags if you need to limit the operators connectivity to the public internet.
+The `--reserved-only` flag in conjunction with the `--reserved-nodes` parameter lets you set up a whitelist of nodes that the node may peer with.
 
 ### Firewall traffic
 
@@ -159,7 +159,7 @@ To operate properly your Polymesh nodes should have at least the following traff
   * **Port 443 egress (HTTPS)** (optional but recommended): Used to send basic telemetry
     to Polymath servers.
 * Operator nodes:
-  * **Libp2p ingress/egress**: Operator nodes should be able to send and receive p2p events from WAN or a trustedset
+  * **Libp2p ingress/egress**: Operator nodes should be able to send and receive p2p events from WAN or a trusted set
     of other nodes that do have WAN connectivity.
 
 ## High Availability
@@ -199,8 +199,7 @@ node goes down. Please see [Upgrading or Replacing a Node](#upgrading-or-replaci
 
 ## Getting the Polymesh Node Software
 
-Both non-operator and operator nodes use the same binary and only differ in the parameters used to
-run them.
+All Polymesh nodes use the same binary and only differ in the parameters used to run them.
 
 There are a number of ways to get and deploy the node binary:
 
@@ -219,7 +218,7 @@ There are a number of ways to get and deploy the node binary:
 
 ## Node Resource Requirements
 
-The following resources should be allocated to each Polymesh non-operator and operator node:
+The following resources should be allocated to each Polymesh node:
 
 | Resource | Minimum Value | Recommended Value |
 | ---------| --------------| ----------------- |
@@ -289,8 +288,8 @@ spare is now the active operator node and vice-versa.  Be sure to treat them acc
 Alternatively you may perform the failover operation again to restore your original active node
 as the current active node and the original warm spare as the current warm spare.
 
-On `testnet` you may perform an in-place upgrade if you do not have a warm spare.  **We do not
-recommend in-place upgrades for** `mainnet` **due to the risk of penalisation due to downtime in the case
+On Alcyone you may perform an in-place upgrade if you do not have a warm spare.  **We do not
+recommend in-place upgrades for ITN / Mainnet due to the risk of penalisation due to downtime in the case
 of a failed upgrade.**
 
 ## Backing Up a Node
@@ -393,8 +392,8 @@ the [common parameters](#common-parameters-for-running-a-polymesh-node):
 If you wish to connect to just a trusted set of other nodes, you can use the below flags to control this:
 
 * `--reserved-only`: Only connect to reserved peers.
-* `--reserved-nodes` (conditionally optional - see notes): This parameter takes a space separated list of libp2p peer addresses
-  in the form of `/ip4/<SENTRY_IP_ADDRESS>/tcp/30333/p2p/<SENTRY_NODE_IDENTITY>` or `/dns4/<SENTRY_RESOLVABLE_HOSTNAME>/tcp/30333/p2p/<SENTRY_NODE_IDENTITY>` to which the operator node will connect.  If left out then the peers must be provided via the `system_addReservedPeer` RPC method.  Failure to provide peers via either this parameter or the RPC method will cause the operator node to remain disconnected from the chain.
+* `--reserved-nodes`: This parameter takes a space separated list of libp2p peer addresses
+  in the form of `/ip4/<PEER_IP_ADDRESS>/tcp/30333/p2p/<PEER_NODE_IDENTITY>` or `/dns4/<PEER_RESOLVABLE_HOSTNAME>/tcp/30333/p2p/<PEER_NODE_IDENTITY>` to which the operator node will connect.  If left out then the peers must be provided via the `system_addReservedPeer` RPC method.  Failure to provide peers via either this parameter or the RPC method will cause the operator node to remain disconnected from the chain.
 
 Next we will generate the node's session keys.
 
@@ -479,7 +478,7 @@ The basic health of a node can be assessed by monitoring the following metrics:
 | `polymesh_block_height{status="finalized"}` | Finalised block number | +/- 3 from rest of the network | The block number for the rest of the network should be fetched from an external source. |
 | `polymesh_block_height{status="best"}` | Best block time | 6s +/- 2s | The block time is the difference between the best block timestamps.  The ideal mean time is 6 seconds, but some jitter (less than 2s) is acceptable due to network latency |
 | `polymesh_ready_transactions_number` | Transactions in ready queue | 0-150 | A healthy node should have zero or near-zero transactions in its ready queue.  A ready queue with a growing number of transactions can be an idicator of excessive node latency |
-| `polymesh_sub_libp2p_peers_count` | Number of peers | Number of other nodes for operators | An operator node should maintain connectivity to other operators and either the public internet or a subset of trusted peers |
+| `polymesh_sub_libp2p_peers_count` | Number of peers | Number of peers | Operator nodes that are well connected with other operator nodes will experience lower on-chain lag compared to operator nodes with a limited set of operator peers.  Operator nodes should be connected to all other operator nodes with a maximum of three hops (two intermediate nodes between operators). |
 
 We have published a Grafana dashboard to monitor the metrics exposed by the Polymesh node via its Prometheus exporter.
 You may download it [here](https://github.com/PolymathNetwork/polymesh-tools/tree/main/grafana). In order to use
@@ -493,7 +492,7 @@ In addition to the Polymesh metrics you should also monitor basic node metrics a
 | Free disk space           | 30 GB+ or > 20% volume capacity | There should always be some free disk space for the Polymesh node to consume. |
 | Free RAM                  | 1 GB+ | Spikes in RAM usage are acceptable but on average, there should be at least 1 GB of free RAM available on the system for the node to consume.|
 | CPU usage                 | 5-50% (overall) | This is the overall CPU usage and not per core usage. Occasional spikes above 50% are acceptable but more cores should be added if the CPU usage continuously stays above 50%. |
-| Network connectivity      | <1% packet loss | Nodes should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new nodes should be deployed, or the operators connectivity limited to trusted nodes. |
+| Network connectivity      | >0.1 mbps bandwidth | Nodes should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new nodes should be deployed, or the operators connectivity limited to trusted nodes. |
 
 ## Bonding POLYX
 
@@ -504,12 +503,10 @@ To become an operator on Polymesh, you need to bond (lock) some POLYX in the sys
 account that stores your bonded funds is called the stash account and the account that decides
 what to do with the bonded funds is called the controller account.
 
-*For ITN* `itn` **It is highly recommended that you make your controller and stash accounts be two separate
-accounts.** For this, you will create two accounts and make sure each of them has at least enough
-funds to pay the fees for making transactions. Keep most of your funds in the stash account since
-it is meant to be the custodian of your staking funds.
+**It is highly recommended that you make your controller and stash accounts be two separate accounts.** For this,
+you will create two accounts and make sure each of them has at least enough funds to pay the fees for making transactions. Keep most of your funds in the stash account since it is meant to be the custodian of your staking funds.
 
-*For Alcyone* `testnet` *you can use the same account for the Stash account and the Controller account.*
+*For Alcyone you can use the same account for the Stash account and the Controller account.*
 
 To bond your funds,
 
