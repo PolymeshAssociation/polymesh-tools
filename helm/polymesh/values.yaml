@@ -19,8 +19,9 @@ polymesh:
     - --base-path
     -   /var/lib/polymesh
     - --operator
+    - --wasm-execution
+    -   compiled
     - --prometheus-external
-    - --reserved-only
     - --telemetry-url
     -   "'wss://telemetry.polymesh.live:443/submit 0'"
     - --db-cache
