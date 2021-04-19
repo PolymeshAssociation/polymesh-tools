@@ -28,6 +28,31 @@ spec:
 
 ---
 
+{{- if .Values.service.prometheus.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+{{- if .Values.service.prometheus.annotations }}
+  annotations: {{ toYaml .Values.service.prometheus.annotations | nindent 2 }}
+{{- end }}
+  name: {{ template "polymesh.fullname" . }}-prometheus
+  labels:
+    {{- include "polymesh.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "polymesh.selectorLabels" . | nindent 4 }}
+  type: {{ .Values.service.prometheus.type }}
+  ports:
+    - name: prometheus
+      protocol: TCP
+      port: {{ .Values.service.prometheus.port }}
+      targetPort: prometheus
+      {{- if (eq .Values.service.prometheus.type "NodePort") }}
+      nodePort: {{ .Values.service.prometheus.nodePort }}
+      {{- end }}
+{{- end }}
+---
+
 {{- if .Values.service.jsonrpc.enabled }}
 apiVersion: v1
 kind: Service
