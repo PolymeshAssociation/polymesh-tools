@@ -1,0 +1,20 @@
+{{- if .Values.service.prometheus.servicemonitor }}
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "polymesh.fullname" . }}
+  labels:
+    {{- include "polymesh.labels" . | nindent 4 }}
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: polymesh
+  endpoints:
+  - path: /metrics
+    port: prometheus
+  namespaceSelector:
+    any: true
+
+{{- end }}
