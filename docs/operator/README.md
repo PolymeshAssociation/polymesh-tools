@@ -78,7 +78,6 @@ Polymesh operator node. The intended audience for this document is the operator�
 however, some business considerations were included for completeness and to provide the
 operator’s IT team with the necessary context.
 
-
 ## Governance
 
 Polymesh is a permissioned network meaning potential operators must go through a governance
@@ -139,12 +138,12 @@ are sent. This should be a cold wallet, never attached to the operator node.
 
 ## Network Architecture
 
-The recommended secure operator setup for ITN / Mainnet consists of the following:
+The recommended secure operator setup for Testnet / Mainnet consists of the following:
 
 * An active [operator node](#glossary) with configured session keys
 * A [warm spare operator node](#glossary) configured like an operator node but **without** session keys
 
-A *minimum* recommended Alcyone setup would include just a single operator node.
+A *minimum* recommended Testnet setup would include just a single operator node.
 
 The `--reserved-only` flag in conjunction with the `--reserved-nodes` parameter lets you set up a whitelist of nodes that the node may peer with.
 
@@ -214,7 +213,7 @@ There are a number of ways to get and deploy the node binary:
   to the release source code files we publish four files:  The Polymesh binary and its checksum (identified by the `-linux-amd64`
   suffix indicating the CPU platform it is compiled for) and an archive of Polymesh runtimes and its checksum.  You do not need
   the runtime files as they are already included in the binary.
-* Build your own binary from the [release branch of our source code](https://github.com/PolymathNetwork/Polymesh/tree/alcyone)
+* Build your own binary from the [release branch of our source code](https://github.com/PolymathNetwork/Polymesh/tree/mainnet)
 
 ## Node Resource Requirements
 
@@ -272,7 +271,7 @@ active node by submitting the change on the blockchain using your controller acc
 To do so:
 
 1. (If not done already) Generate a new set of session keys for the warm spare operator node
-2. Go to [Staking > Account Actions](https://alcyone-app.polymesh.live/#/staking/actions)
+2. Go to [Staking > Account Actions](https://mainnet-app.polymesh.live/#/staking/actions)
 3. Click on "Set Session Key" against your bonding account
 4. Enter the session keys from the warm node in the field and click on "Set Session Key"
 
@@ -288,8 +287,8 @@ spare is now the active operator node and vice-versa.  Be sure to treat them acc
 Alternatively you may perform the failover operation again to restore your original active node
 as the current active node and the original warm spare as the current warm spare.
 
-On Alcyone you may perform an in-place upgrade if you do not have a warm spare.  **We do not
-recommend in-place upgrades for ITN / Mainnet due to the risk of penalisation due to downtime in the case
+On Testnet you may perform an in-place upgrade if you do not have a warm spare.  **We do not
+recommend in-place upgrades for Mainnet due to the risk of penalisation due to downtime in the case
 of a failed upgrade.**
 
 ## Backing Up a Node
@@ -312,9 +311,9 @@ Backing up the database should be done on an offline node. A typical approach to
 * Sync the database snapshot to offsite storage
 
 The database snapshot contains no confidential information as long as **only** the
-`/<base path>/chains/alcyone/db` directory is backed up.
+`/<base path>/chains/polymesh_mainnet/db` directory is backed up.
 
-Because of the nature of how the database is stored in files, stopping/starting the polymesh
+Because of the nature of how the database is stored in files, stopping/starting the Polymesh
 process will create partial database files.  Since an excessive amount of files in a directory
 can cause performance issues we recommend to either limit snapshots to a daily frequency or
 to periodically reset the backup node's database to a fresh sync from the chain.
@@ -373,7 +372,7 @@ To run a polymesh node we recommend that you make use of the following options:
 
 * `--name <name>` (optional but recommended): Human-readable name of the nodes that is reported to the telemetry services
 * `--pruning archive`: Ensure that the node maintains a full copy of the blockchain
-* `--chain itn`: Run an ITN node. If this parameter is excluded, the default is to connect to the Alcyone network
+* `--chain mainnet`: Run a mainnet node. If this parameter is excluded, the default is to connect to the testnet network
 * `--wasm-execution compiled`: Use compiled wasm to improve performance
 * `--base-path <path>` (optional): Specify where Polymesh will look for its DB files and keystore
 * `--db-cache <cache size in MiB>` (optional):  Improve the performance of the polymesh process by increasing its
@@ -415,7 +414,7 @@ a923978d9c16014205af96da9d2e213083aefcb53982927a2756ffa83d81658
 ```
 
 Take note of this string: it contains the public portion of your session keys. The private
-keys are stored in a keystore on your operator server in the `/<base path>/chains/alcyone/keystore/`
+keys are stored in a keystore on your operator server in the `/<base path>/chains/polymesh_mainnet/keystore/`
 directory. The filenames of those keys are the public key portion of the respective session key, and
 the contents of the files are the private key portion.
 
@@ -504,13 +503,14 @@ account that stores your bonded funds is called the stash account and the accoun
 what to do with the bonded funds is called the controller account.
 
 **It is highly recommended that you make your controller and stash accounts be two separate accounts.** For this,
-you will create two accounts and make sure each of them has at least enough funds to pay the fees for making transactions. Keep most of your funds in the stash account since it is meant to be the custodian of your staking funds.
+you will create two accounts and make sure each of them has at least enough funds to pay the fees for making transactions.
+Keep most of your funds in the stash account since it is meant to be the custodian of your staking funds.
 
-*For Alcyone you can use the same account for the Stash account and the Controller account.*
+*For Testnet you can use the same account for the Stash account and the Controller account.*
 
 To bond your funds,
 
-* Go to [Staking section](https://itn-app.polymesh.live/#/staking/actions)
+* Go to [Staking section](https://mainnet-app.polymesh.live/#/staking/actions)
 * Click on "Account Actions"
 * Click on the "+”Stash” button
 
@@ -543,7 +543,7 @@ those keys.
 
 To set your Session Keys,
 
-* Go to [Staking section](https://itn-app.polymesh.live/#/staking/actions)
+* Go to [Staking section](https://mainnet-app.polymesh.live/#/staking/actions)
 * Click on "Account Actions"
 * Click on the "Session Key" button on the bonding account you generated earlier
 * Enter the result of `author_rotateKeys` that we saved earlier in the field and click "Set Session Key"
@@ -573,7 +573,7 @@ session.
 
 To stop being an operator on the Polymesh chain,
 
-* Go to [Staking > Account Actions](https://itn-app.polymesh.live/#/staking/actions)
+* Go to [Staking > Account Actions](https://mainnet-app.polymesh.live/#/staking/actions)
 * Click on "Stop Validating" against your bonding account
 
 You will be removed from the operator set in the next session. You can then safely terminate all

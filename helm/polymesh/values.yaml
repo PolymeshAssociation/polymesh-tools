@@ -29,7 +29,7 @@ polymesh:
     - --pruning
     -   archive
     - --chain
-    -   itn
+    -   mainnet
   additionalArgs: []
   extraEnv: []
 
