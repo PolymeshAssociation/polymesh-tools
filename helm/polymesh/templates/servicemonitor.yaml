@@ -10,7 +10,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: polymesh
+      {{- include "polymesh.selectorLabels" . | nindent 6 }}
   endpoints:
   - path: /metrics
     port: prometheus
