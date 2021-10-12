@@ -311,7 +311,7 @@ Backing up the database should be done on an offline node. A typical approach to
 * Sync the database snapshot to offsite storage
 
 The database snapshot contains no confidential information as long as **only** the
-`/<base path>/chains/polymesh_mainnet/db` directory is backed up.
+`/<base path>/chains/mainnet/db` directory is backed up.
 
 Because of the nature of how the database is stored in files, stopping/starting the Polymesh
 process will create partial database files.  Since an excessive amount of files in a directory
@@ -414,7 +414,7 @@ a923978d9c16014205af96da9d2e213083aefcb53982927a2756ffa83d81658
 ```
 
 Take note of this string: it contains the public portion of your session keys. The private
-keys are stored in a keystore on your operator server in the `/<base path>/chains/polymesh_mainnet/keystore/`
+keys are stored in a keystore on your operator server in the `/<base path>/chains/mainnet/keystore/`
 directory. The filenames of those keys are the public key portion of the respective session key, and
 the contents of the files are the private key portion.
 
