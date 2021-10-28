@@ -135,9 +135,9 @@ spec:
             {{- if .Values.operatorKeys.requireSecret }}
             {{- if has "--operator" .Values.polymesh.args }}
             - name: operator-keys-ephemeral
-              mountPath: /var/lib/polymesh/chains/alcyone/keystore
+              mountPath: /var/lib/polymesh/chains/polymesh_mainnet/keystore
             - name: operator-keys-ephemeral
-              mountPath: /var/lib/polymesh/chains/polymesh_itn/keystore
+              mountPath: /var/lib/polymesh/chains/polymesh_testnet/keystore
             {{- end }}
             {{- if .Values.nodeKey.existingSecret }}
             - name: node-key
