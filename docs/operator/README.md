@@ -271,7 +271,7 @@ active node by submitting the change on the blockchain using your controller acc
 To do so:
 
 1. (If not done already) Generate a new set of session keys for the warm spare operator node
-2. Go to [Staking > Account Actions](https://mainnet-app.polymesh.live/#/staking/actions)
+2. Go to [Staking > Account Actions](https://mainnet-app.polymesh.network/#/staking/actions)
 3. Click on "Set Session Key" against your bonding account
 4. Enter the session keys from the warm node in the field and click on "Set Session Key"
 
@@ -510,7 +510,7 @@ Keep most of your funds in the stash account since it is meant to be the custodi
 
 To bond your funds,
 
-* Go to [Staking section](https://mainnet-app.polymesh.live/#/staking/actions)
+* Go to [Staking section](https://mainnet-app.polymesh.network/#/staking/actions)
 * Click on "Account Actions"
 * Click on the "+”Stash” button
 
@@ -543,7 +543,7 @@ those keys.
 
 To set your Session Keys,
 
-* Go to [Staking section](https://mainnet-app.polymesh.live/#/staking/actions)
+* Go to [Staking section](https://mainnet-app.polymesh.network/#/staking/actions)
 * Click on "Account Actions"
 * Click on the "Session Key" button on the bonding account you generated earlier
 * Enter the result of `author_rotateKeys` that we saved earlier in the field and click "Set Session Key"
@@ -573,7 +573,7 @@ session.
 
 To stop being an operator on the Polymesh chain,
 
-* Go to [Staking > Account Actions](https://mainnet-app.polymesh.live/#/staking/actions)
+* Go to [Staking > Account Actions](https://mainnet-app.polymesh.network/#/staking/actions)
 * Click on "Stop Validating" against your bonding account
 
 You will be removed from the operator set in the next session. You can then safely terminate all
