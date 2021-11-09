@@ -98,6 +98,10 @@ of the unbonding period, which is currently 28 days.
 
 ## Key Management
 
+NB - Please note that operators should use Ledger Nano X's, not Ledger Nano S's.
+
+The Nano S doesn't support setting session keys so is not suitable for operators.
+
 There are three main types of keys that an operator must manage:
 
 * Session keys
