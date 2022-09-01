@@ -23,7 +23,7 @@ polymesh:
     -   compiled
     - --prometheus-external
     - --telemetry-url
-    -   "'wss://telemetry.polymesh.live:443/submit 0'"
+    -   "'wss://telemetry.polymesh.network:443/submit 0'"
     - --db-cache
     -   '"4096"'
     - --pruning
