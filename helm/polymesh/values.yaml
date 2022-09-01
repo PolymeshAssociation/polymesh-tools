@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: polymathnet/polymesh
+  repository: polymeshassociation/polymesh
   pullPolicy: IfNotPresent
   # Override the image tag whose default is the chart appVersion.
   #tag: "debian"
