@@ -83,7 +83,7 @@ spec:
         - name: polymesh
           securityContext:
             {{- toYaml .Values.securityContext.polymesh | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default ( printf "distroless-%s" .Chart.AppVersion ) }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default ( printf "%s-mainnet-distroless" .Chart.AppVersion ) }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - /usr/local/bin/polymesh
