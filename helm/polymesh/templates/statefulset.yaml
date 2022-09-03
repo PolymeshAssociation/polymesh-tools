@@ -86,7 +86,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default ( printf "%s-mainnet-distroless" .Chart.AppVersion ) }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - /usr/local/bin/polymesh
+            - /polymesh
           args:
             {{- range .Values.polymesh.args }}
             - {{ . }}
