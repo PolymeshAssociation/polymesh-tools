@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: polymathnet/polymesh
+  repository: polymeshassociation/polymesh
   pullPolicy: IfNotPresent
   # Override the image tag whose default is the chart appVersion.
   #tag: "debian"
@@ -22,8 +22,6 @@ polymesh:
     - --wasm-execution
     -   compiled
     - --prometheus-external
-    - --telemetry-url
-    -   "'wss://telemetry.polymesh.live:443/submit 0'"
     - --db-cache
     -   '"4096"'
     - --pruning
