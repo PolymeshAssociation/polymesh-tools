@@ -24,6 +24,8 @@ polymesh:
     - --prometheus-external
     - --db-cache
     -   '"4096"'
+    - --db-max-total-wal-size
+    -   '"1024"'
     - --pruning
     -   archive
     - --chain
