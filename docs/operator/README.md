@@ -227,7 +227,7 @@ The following resources should be allocated to each Polymesh node:
 | ---------| --------------| ----------------- |
 | CPU      | 2 CPU         | 4 CPU             |
 | RAM      | 8 GB          | 8+ GB             |
-| Storage  | 80 GB SSD     | 100+ GB low latency SSD (e.g. local NVMe)|
+| Storage  | 250 GB SSD    | 400+ GB low latency SSD (e.g. local NVMe)|
 
 The storage requirements will increase over time as the blockchain grows. Sufficient spare storage
 (or expandable volumes) and adequate monitoring measures should be put in place to ensure continued
