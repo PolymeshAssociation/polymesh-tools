@@ -1,53 +1,21 @@
 # Polymesh Operator Guide
 
-## About
-
-Copyright © 2020 Polymath Inc. All Rights Reserved.
-
-No part of this manual, including the products and software described in it, may be reproduced,
-transmitted or transcribed to a third-party, or translated into any language in any form or by any
-means without the express written permission of Polymath Inc. (“Polymath”).
-
-THIS MANUAL IS PROVIDED “AS-IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OR CONDITIONS OF
-COMPLETENESS, ACCURACY, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. IN
-NO EVENT SHALL POLYMATH, ITS AFFILIATES OR ANY OF THEIR DIRECTORS, OFFICERS,
-EMPLOYEES OR AGENTS BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL OR
-CONSEQUENTIAL DAMAGES (INCLUDING DAMAGES FOR LOSS OF PROFITS, LOSS OF BUSINESS,
-LOSS OF USE OR DATA, INTERRUPTION OF BUSINESS AND THE LIKE), EVEN IF POLYMATH HAS
-BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES ARISING FROM ANY DEFECT OR ERROR
-IN THIS MANUAL. POLYMATH ACCEPTS NO LIABILITY AND SHALL NOT BE LIABLE FOR ANY
-DAMAGES, DIRECT OR INDIRECT, RESULTING FROM YOUR USE OF THIS MANUAL. IN THE EVENT
-POLYMATH, ITS AFFILIATES, LICENSORS OR SUPPLIERS IS FOUND LIABLE, SUCH LIABILITY
-SHALL BE LIMITED TO 10 BARBADOS DOLLARS AND THE PAYMENT OF SUCH AMOUNT TO YOU
-SHALL BE YOUR EXCLUSIVE REMEDY.
-
-Specifications and information contained in this manual are furnished for
-informational use only, and are subject to change without notice, and should
-not be construed as advice by Polymath. Recipient must obtain their own
-professional or specialist advice before taking, or refraining from, any action
-on the basis of the information contained in this manual.
-
-Polymath assumes no responsibility or liability for any errors or inaccuracies
-that may appear in this manual and gives no undertaking, and is under no
-obligation, to update this document if any errors or inaccuracies become
-apparent. The information in this document has not been independently verified.
-
-
 ## Table of Contents
 
 - [Polymesh Operator Guide](#polymesh-operator-guide)
-  - [About](#about)
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Governance](#governance)
   - [Becoming an Operator](#becoming-an-operator)
   - [Key Management](#key-management)
     - [Session Keys](#session-keys)
-    - [Controller Key](#controller-key)
+    - [Permissioned Identity](#permissioned-identity)
+    - [Primary key](#primary-key)
+    - [Secondary keys](#secondary-keys)
     - [Stash Key](#stash-key)
+    - [Controller Key](#controller-key)
   - [Network Architecture](#network-architecture)
-    - [Firewall traffic](#firewall-traffic)
+    - [Firewall Traffic](#firewall-traffic)
   - [High Availability](#high-availability)
     - [Operator Node High Availability](#operator-node-high-availability)
   - [Getting the Polymesh Node Software](#getting-the-polymesh-node-software)
@@ -56,548 +24,506 @@ apparent. The information in this document has not been independently verified.
   - [Upgrading or Replacing a Node](#upgrading-or-replacing-a-node)
     - [Operator Node Upgrades](#operator-node-upgrades)
   - [Backing Up a Node](#backing-up-a-node)
-  - [Auto Restarting Nodes](#auto-restarting-nodes)
+  - [Auto-Restarting Nodes](#auto-restarting-nodes)
+    - [Container-Based Nodes](#container-based-nodes)
+    - [Binary-Based Nodes](#binary-based-nodes)
+      - [Setting Up `systemd`](#setting-up-systemd)
   - [Common Parameters for Running a Polymesh Node](#common-parameters-for-running-a-polymesh-node)
   - [Running an Operator Node](#running-an-operator-node)
-    - [Generating the session keys with access to the node's RPC port](#generating-the-session-keys-with-access-to-the-nodes-rpc-port)
-    - [Generating the session keys in containerised Polymesh nodes](#generating-the-session-keys-in-containerised-polymesh-nodes)
-  - [Getting the Identity of a Node](#getting-the-identity-of-a-node)
-  - [Metrics and Monitoring](#metrics-and-monitoring)
-  - [Bonding POLYX](#bonding-polyx)
-  - [Setting Session Keys](#setting-session-keys)
-  - [Activating your Operator Node](#activating-your-operator-node)
-  - [Stop Being an Operator](#stop-being-an-operator)
+    - [Generating Session Keys with Access to the Node's RPC Port](#generating-session-keys-with-access-to-the-nodes-rpc-port)
+    - [Generating Session Keys in Containerized Polymesh Nodes](#generating-session-keys-in-containerized-polymesh-nodes)
+    - [Getting the Identity of a Node](#getting-the-identity-of-a-node)
+      - [From the Operator Node Logs](#from-the-operator-node-logs)
+      - [Via RPC Call](#via-rpc-call)
+    - [Metrics and Monitoring](#metrics-and-monitoring)
+      - [Polymesh-Specific Metrics](#polymesh-specific-metrics)
+      - [General Node Metrics](#general-node-metrics)
+    - [Bonding POLYX](#bonding-polyx)
+      - [Steps to Bond Funds](#steps-to-bond-funds)
+    - [Setting Session Keys](#setting-session-keys)
+      - [Steps to Set Session Keys](#steps-to-set-session-keys)
+    - [Activating Your Operator Node](#activating-your-operator-node)
+      - [Steps to Activate](#steps-to-activate)
+    - [Stopping Operator Activity](#stopping-operator-activity)
+      - [Reward Destination Considerations](#reward-destination-considerations)
   - [Glossary](#glossary)
-
 
 ## Introduction
 
-Operators perform critical functions for the network, and as such, have strict uptime requirements.
-This document contains information about the recommended setup and maintenance of a
-Polymesh operator node. The intended audience for this document is the operator’s IT team,
-however, some business considerations were included for completeness and to provide the
-operator’s IT team with the necessary context.
+Operators perform critical functions for the network and have strict uptime requirements. This document provides information about the recommended setup and maintenance of a Polymesh operator node. The intended audience is the operator’s IT team; however, some business considerations have been included for completeness and to provide the necessary context.
 
 ## Governance
 
-Polymesh is a permissioned network meaning potential operators must go through a governance
-process in order to be permissioned to work with the Polymesh network. The governance process
-is on-chain and managed via the Polymesh Improvement Proposal (PIP) mechanism.
+Polymesh is a permissioned network, meaning potential operators must undergo a governance process to be permitted to work with the Polymesh network. This governance process is on-chain and managed via the Polymesh Improvement Proposal (PIP) mechanism.
 
 ## Becoming an Operator
 
-To become an operator on Polymesh, you may need to bond (lock) POLYX in the
-system. This facilitates the economic incentives that the security of Polymesh relies on. The
-account that stores your bonded POLYX is called your Stash account and the account that decides
-what to do with the bonded POLYX is called your Controller account. Rewards that are generated
-for running an operator node can be paid to the Stash account or another specified account.
+The node operator role on Polymesh requires a permission to be assigned. All Operators satisfy selection criteria determined by the Polymesh Association and be approved by the the Polymesh Governing Council.
 
-You do not need to bond all of the POLYX in your Stash account and you can always
-bond more POLYX later. However, withdrawing any bonded POLYX requires to wait for the duration
-of the unbonding period, which is currently 28 days.
+To become an operator on Polymesh, you also need to bond (lock) POLYX in the system. This facilitates the economic incentives on which Polymesh's security relies. The account that stores your bonded POLYX is called the Stash account, while the account that manages the bonded POLYX is called the Controller account. Rewards generated for running an operator node can be sent to the Stash account or another specified account.
+
+You do not need to bond all the POLYX in your Stash account and can bond more later. However, withdrawing any bonded POLYX requires waiting for the unbonding period, currently set at 28 days.
 
 ## Key Management
 
-NB - Please note that operators should use Ledger Nano X's, not Ledger Nano S's.
+**NB**: It is recommended that operators use Ledger Nano S Plus, Nano X, Flex or Stax devices to store their keys. The discontinued Ledger Nano S should **NOT** be used.
 
-The Nano S doesn't support setting session keys so is not suitable for operators.
+The Nano S does not support setting session keys and is therefore unsuitable for operators.
 
 There are three main types of keys that an operator must manage:
 
-* Session keys
-* Controller key
-* Stash key
+- Session keys
+- Controller key
+- Stash key
 
-The session keys are the only type of keys that the operator node needs access to. The other two
-keys should be kept securely in a supported hardware wallet.
+The session keys are the only type of key that the operator node needs access to. The other two keys should be securely stored in a supported hardware wallet.
 
 ### Session Keys
 
-The session keys are the keys that an operator node uses to sign data needed for consensus.
-These keys are stored on the operator node itself. Session keys don’t hold any funds but they can
-be used to perform actions that will result in a penalty, like double signing. Hence, it is important to
-keep these keys secure.
+Session keys are used by the operator node to sign data necessary for consensus. These keys are stored on the operator node itself. Although session keys do not hold any funds, they can be used to perform actions that could result in penalties, such as double signing. It is therefore critical to keep these keys secure.
 
-These keys can either be generated offline and injected in the operator node or can be generated
-within the operator node by calling the appropriate RPC method. Once generated the session keys
-should be persisted.
+Session keys can either be generated offline and injected into the operator node or generated within the operator node by calling the appropriate RPC method. Once generated, session keys should be persisted.
 
-In the future, Polymesh will support signing payloads outside the client so that keys can be stored
-on another device, e.g. a hardware security module (HSM) or a secure enclave. For the time being,
-however, session keys must be either stored within the client or be mounted from secure storage
-via external methods.
+Session keys must either be stored within the client or mounted from secure storage via external methods.
 
-### Controller Key
+### Permissioned Identity
 
-The controller key is used to manage bonded funds, vote with bonded funds and do similar actions
-on chain. This key is not directly needed by the operator node and hence must never be shared
-with the operator node. It should be a multisig account or a supported hardware wallet. These keys
-can hold funds and directly control funds bonded by the operator and therefore these should be
-kept very securely. Consider these keys to be a semi-cold wallet.
+On Polymesh all keys (excluding Session keys) must be linked to a on chain DID with a valid CDD claim to be able to receive POLYX and submit transactions. A node operators DID must be granted an additional role making it a permissioned identity. Only keys linked to this identity will be allowed to be Stash keys.
+
+### Primary key
+
+This key is a special key under the onchain identity. It has additional capabilities of adding and removing secondary keys from an identity. It cannot access POLYX on secondary keys. It is recommended to keep the Primary key as in a cold wallet and **NOT** use it as a stash key.
+
+### Secondary keys
+
+Secondary keys are authorized by a primary key to join an identity. For the purposes of staking/POLYX transfers they are no different to primary keys. Secondary keys can be given permissions to perform specific onchain actions. e.g. they may be allowed to interact only with specific assets, only with specific portfolios or only use specific transactions.
 
 ### Stash Key
 
-This is the account which holds the POLYX that has been bonded and optionally where the operator rewards
-are sent. This should be a cold wallet, never attached to the operator node.
+The stash key is the account that holds the POLYX bonded by the operator and, optionally, receives operator rewards. This should be a cold wallet and must never be attached to the operator node.
+
+Stash keys can be either a primary or a secondary key but **MUST** be linked to the permissioned DID of the operator.
+
+Stash keys can:
+
+- Bond POLYX
+- Bond extra POLYX
+- Set the Controller key of the stash. If a controller key is not provided the Stash key is automatically made the Controller.
+
+### Controller Key
+
+The controller key is used to manage bonded funds, vote with bonded funds, and perform similar on-chain actions. This key is not directly required by the operator node and should never be shared with it. It is recommended to use a multisig account or a supported hardware wallet for the controller key. These keys can hold funds and directly control bonded funds, so they must be stored securely. Consider the controller key a semi-cold wallet.
+
+Controller keys can be a Primary or Secondary key and can be associated with any identity. They do not need to be associated with the permissioned identity of the Stash.
+
+Controller keys can:
+
+- Set/update session keys
+- Set commission and validate
+- Set a destination for reward payments - i.e. stash with automatically stake, stash unstaked, controller or other account.
+- Commence unbonding of stash tokens
+- Withdraw unbonded tokens after the 28 day waiting period to the stash account. i.e. the controller cannot transfer unbonded tokens from the stash.
+- Rebond tokens which are in the process of unbonding
+- "Chill" the node i.e. gracefully stop validating after the last era the node was elected to ends.
+- Purge Session keys
 
 ## Network Architecture
 
-The recommended secure operator setup for Testnet / Mainnet consists of the following:
+The recommended secure operator setup for Testnet/Mainnet includes the following:
 
-* An active [operator node](#glossary) with configured session keys
-* A [warm spare operator node](#glossary) configured like an operator node but **without** session keys
+- An active [operator node](#glossary) configured with session keys
+- A [warm spare operator node](#glossary) configured like an operator node but **without** session keys
 
-A *minimum* recommended Testnet setup would include just a single operator node.
+A _minimum_ setup consists of a single operator node.
 
-The `--reserved-only` flag in conjunction with the `--reserved-nodes` parameter lets you set up a whitelist of nodes that the node may peer with.
+The `--reserved-only` flag, combined with the `--reserved-nodes` parameter, allows you to restrict connections to a whitelist of nodes that the operator node may peer with.
 
-### Firewall traffic
+### Firewall Traffic
 
-To operate properly your Polymesh nodes should have at least the following traffic whitelisted:
+To function properly, Polymesh nodes require the following traffic to be whitelisted:
 
-* All nodes:
-  * **NTP egress**: System clock drift can cause a node to fail to produce blocks due to mismatched
-    timestamps between the node and the network.  Ensure your nodes are synchronised with a reliable
-    NTP server.
-  * **Port 443 egress (HTTPS)** (optional but recommended): Used to send basic telemetry
-    to Polymath servers.
-* Operator nodes:
-  * **Libp2p ingress/egress**: Operator nodes should be able to send and receive p2p events from WAN or a trusted set
-    of other nodes that do have WAN connectivity.
+- **All Nodes**:
+
+  - **NTP Egress**: System clock drift can cause a node to fail to produce blocks due to mismatched timestamps. Ensure your nodes are synchronized with a reliable NTP server.
+  - **Port 443 Egress (HTTPS)** (optional but recommended): Used to send basic telemetry to Polymesh servers. Enabling telemetry allows your node to appear on the [Polymesh Telemetry page](https://stats.polymesh.network/).
+
+- **Operator Nodes**:
+  - **Libp2p Ingress/Egress**: Operator nodes **must** send and receive P2P events from the WAN or a trusted set of nodes with WAN connectivity. _(Default Port: 30333)_
 
 ## High Availability
 
 ### Operator Node High Availability
 
-The network is resilient to temporary outages of some of its operator nodes.  Any one operator
-node experience a few minutes of downtime for upgrades, but should not have frequent or extended downtime lest
-they risk getting slashed from the network.
+The network tolerates simultaneous outages of multiple operator nodes, provided a critical threshold is maintained. An operator node can experience brief downtime for maintenance or upgrades. However, frequent or prolonged downtime—or outages of multiple nodes simultaneously—risks incurring slashing penalties.
 
-It is imperative that only one operator node is active with the same session keys. If multiple
-operator nodes with the same session keys do end up online at the same time then they will end up signing
-conflicting blocks and will thus get penalised for [equivocation](#glossary).
-We recommend that you do not configure automatic failover and instead maintain only a warm
-spare that is failed over in a supervised manner.
+**Only one operator node may be active with the same session keys at a time.** If multiple operator nodes with identical session keys are online simultaneously, they may sign conflicting blocks, resulting in [equivocation](#glossary) penalties. Therefore, automatic failover is discouraged. Instead, maintain a warm spare node for supervised failover.
 
-There are two possible failover methods:
+Two failover methods are available:
 
-* Shared session key
-* Unique session key
+- **Shared Session Key**: The session keys are shared with the warm spare, which is activated if the primary node fails. The primary node **must not** come back online. **_The penalty for equivocation is much higher than for being offline._**
+- **Unique Session Key**: Each operator node instance has a unique session key. If the primary node fails, the controller must update the session keys on-chain for the secondary node. As key changes take effect in the next session, there may still be a period where the node is offline for one session. This method eliminates the risk of equivocation penalties.
 
-With the shared session key method the operator node session keys are added to the warm spare in
-case of a primary operator node failure.  In this case the primary node **must not** come back
-online. ***The penalty for equivocation is much higher than the penalty for being offline***.
-
-The unique session key method uses different session keys for different instances of operator nodes. If
-the primary operator node goes down for some reason, the controller will need to change the
-active session keys on the blockchain for the secondary node to become active. Since a key
-change takes effect only in the next session, you may still get penalised for being offline for one
-session if your primary node went down without producing any blocks in that session. However this
-approach eliminates the risk of equivocation penalties.
-
-It is not recommended that you store your controller keys on a server for the automated signing of
-the key change transaction. However, you can pre-sign an immortal transaction (a transaction
-without a timeout) and store the signed transaction on a server that will broadcast it if the primary
-node goes down. Please see [Upgrading or Replacing a Node](#upgrading-or-replacing-a-node) for more details.
+Storing controller keys on a server for automated key change transactions is **not** recommended. However, you may pre-sign an immortal transaction (without a timeout) and store it on a server to broadcast if the primary node fails. See [Upgrading or Replacing a Node](#upgrading-or-replacing-a-node) for details.
 
 ## Getting the Polymesh Node Software
 
-All Polymesh nodes use the same binary and only differ in the parameters used to run them.
+All Polymesh nodes use the same binary, differing only in runtime parameters.
 
-There are a number of ways to get and deploy the node binary:
+There are several ways to obtain the node binary:
 
-* Fetch the prebuilt container image from the [Polymath Docker Hub repository](https://hub.docker.com/r/polymathnet/polymesh).
-  There are two flavours available:  `debian` and `distroless`.  The latter has no shell and thus provides a reduced attack
-  surface, whereas the former's shell helps with debugging during the initial setup.  The images are tagged with `<flavour>`
-  and `<flavour>-<version>`.  We recommend using the latter for deterministic versioning, but the former can be used if you
-  set your image pull policy to always pull.  We have also published [sample docker-compose files](https://github.com/PolymathNetwork/polymesh-tools/tree/main/docker-compose).
-  The two release flavours (`debian` and `distroless`) are interchangeable in terms of operation - a setup running the
-  `debian` flavour can be changed to use the `distroless` flavour by only changing the container tag and vice-versa.
-* Fetch the precompiled binary from our [GitHub releases page](https://github.com/PolymathNetwork/Polymesh/releases).  In addition
-  to the release source code files we publish four files:  The Polymesh binary and its checksum (identified by the `-linux-amd64`
-  suffix indicating the CPU platform it is compiled for) and an archive of Polymesh runtimes and its checksum.  You do not need
-  the runtime files as they are already included in the binary.
-* Build your own binary from the [release branch of our source code](https://github.com/PolymathNetwork/Polymesh/tree/mainnet)
+- **Prebuilt Container Images**: Fetch from the [Polymesh Docker Hub repository](https://hub.docker.com/r/polymeshassociation/polymesh). Two flavors are available: `debian` (with a shell for easier debugging) and `distroless` (reduced attack surface, no shell). Images are tagged as `<flavor>` or `<flavor>-<version>`. Use versioned tags for deterministic updates. See our [sample Docker Compose files](https://github.com/PolymeshAssociation/polymesh-tools/tree/main/docker-compose). Refer to the Polymesh Developer Documentation for a guide to [running a Polymesh node with Docker](https://developers.polymesh.network/polymesh-docs/network/running-a-node-docker/).
+
+- **Precompiled Binary**: Download from the [GitHub releases page](https://github.com/PolymeshAssociation/Polymesh/releases). Releases include the Polymesh binary, its checksum, and optional runtime archives. The runtimes are already included in the binary.
+
+- **Build from Source**: Clone the [release branch](https://github.com/PolymeshAssociation/Polymesh/tree/mainnet) and follow the repository instructions to compile the binary.
 
 ## Node Resource Requirements
 
-The following resources should be allocated to each Polymesh node:
+At the time of writing, each Polymesh node should have the following minimum resources:
 
-| Resource | Minimum Value | Recommended Value |
-| ---------| --------------| ----------------- |
-| CPU      | 2 CPU         | 4 CPU             |
-| RAM      | 8 GB          | 8+ GB             |
-| Storage  | 250 GB SSD    | 400+ GB low latency SSD (e.g. local NVMe)|
+| Resource | Minimum Value | Recommended Value                          |
+| -------- | ------------- | ------------------------------------------ |
+| CPU      | 2 CPUs        | 4 CPUs                                     |
+| RAM      | 8 GB          | 8+ GB                                      |
+| Storage  | 250 GB SSD    | 400+ GB low-latency SSD (e.g., local NVMe) |
 
-The storage requirements will increase over time as the blockchain grows. Sufficient spare storage
-(or expandable volumes) and adequate monitoring measures should be put in place to ensure continued
-operations of the node.  A long-running node will keep a large amount of write-ahead logs (WAL) in
-the database directory.  These logs are compacted on node restart.  It is recommended that you reserve
-an additional 40GB of disk space for the WAL.
+As the blockchain grows, storage requirements will increase. Ensure sufficient spare storage or expandable volumes and monitor disk usage. A long-running node accumulates write-ahead logs (WAL) in the database directory. These logs are compacted upon node restart. Reserve an additional 40 GB of disk space for WAL.
 
-It is not recommended that more than one node share the same resources, i.e. it is preferrable to
-run two 2 CPU/8 GB RAM instances with one Polymesh node each than running one 4 CPU/16 GB RAM instance
-with two Polymesh nodes.
+Running multiple nodes on shared resources is not recommended. For example, it is preferable to run two 2-CPU/8-GB RAM instances (one node each) than a single 4-CPU/16-GB RAM instance hosting two nodes.
 
 ## Securing the Instances
 
-Best practices for securing your instances should be followed at all times. These include (but are not limited to):
+Best practices for securing your instances should always be followed. These include (but are not limited to):
 
-* Disabling password-based SSH access
-* Setting up and enabling a network firewall
-* Only opening ports that are needed
-* Disabling unnecessary services
-* Not using the root user and disabling root login
-* Keeping your system up to date
-* Turning on SELinux
-* Monitoring logs and metrics for signs of malicious activity
-* Running periodic CIS benchmarks against your systems
+- Disabling password-based SSH access
+- Setting up and enabling a network firewall
+- Only opening required ports
+- Disabling unnecessary services
+- Avoiding the use of the root user and disabling root login
+- Keeping your system up to date
+- Enabling SELinux
+- Monitoring logs and metrics for signs of malicious activity
+- Running periodic CIS benchmarks against your systems
 
-Be advised: due to the constantly changing landscape of cybersecurity the above list is not and cannot be
-comprehensive.  Node operators are responsible that the security of their nodes is up to date
-with current best practices.
+**Be advised:** Due to the constantly evolving cybersecurity landscape, the above list is not, and cannot be, comprehensive. Node operators are responsible for ensuring that their nodes remain secure and adhere to current best practices.
 
 ## Upgrading or Replacing a Node
 
 ### Operator Node Upgrades
 
-The recommended upgrade process for operator nodes is to perform a failover to the warm spare
-operator node. As mentioned in the [High Availability](#high-availability) section the unique
-key approach is preferable to the shared-key approach.
+The recommended process for upgrading operator nodes is to perform a failover to the warm spare operator node. As mentioned in the [High Availability](#high-availability) section, the unique key approach is preferable to the shared-key approach.
 
-The warm spare operator node should be upgraded first. Since this node is not actively
-validating you can simply stop the Polymesh client running on it, perform the necessary upgrade,
-and then resume operation.
+Begin by upgrading the warm spare operator node. Since this node is not actively validating, you can stop the Polymesh client, perform the necessary upgrade, and then resume operation.
 
-Once your warm spare operator node is upgraded and fully synchronised, you should make it the
-active node by submitting the change on the blockchain using your controller account.
+Once the warm spare node is upgraded and fully synchronized, make it the active node by submitting a change of session keys associated with your stash to those stored in the warm spare's keystore, using your controller account.
 
 To do so:
 
-1. (If not done already) Generate a new set of session keys for the warm spare operator node
-2. Go to [Staking > Account Actions](https://mainnet-app.polymesh.network/#/staking/actions)
-3. Click on "Set Session Key" against your bonding account
-4. Enter the session keys from the warm node in the field and click on "Set Session Key"
+1. (If not already done) Generate a new set of session keys for the warm spare operator node.
+2. Navigate to [Staking > Account Actions](https://mainnet-app.polymesh.network/#/staking/actions).
+3. Click "Set Session Key" for your bonding account.
+4. Enter the session keys from the warm spare node in the field and click "Set Session Key."
 
-See [Running an Operator Nodes](#running-an-operator-node) for instructions on using the
-`author_rotateKeys` RPC method to generate node session keys.
+See [Running an Operator Node](#running-an-operator-node) for instructions on using the `author_rotateKeys` RPC method to generate session keys.
 
-The change in operator session keys only applies in the next session. **For safety, we recommend
-that you wait at least 2 sessions before continuing**. In other words, if the current session is `N`, you
-should wait until session `N + 2` before proceeding with the steps below.
+The change in operator session keys will only take effect in the next session. **For safety, we recommend waiting at least two sessions before proceeding.** If the current session is `N`, wait until session `N + 2` before continuing.
 
-At this point your warm spare and active operator nodes have switched roles:  The previous warm
-spare is now the active operator node and vice-versa.  Be sure to treat them accordingly henceforth.
-Alternatively you may perform the failover operation again to restore your original active node
-as the current active node and the original warm spare as the current warm spare.
+At this point, the warm spare and active operator nodes will have switched roles: the previous warm spare becomes the active node, and vice versa. Ensure they are treated accordingly going forward. Alternatively, you may perform the failover operation again to restore the original active node as the current active node and the original warm spare as the current warm spare.
 
-On Testnet you may perform an in-place upgrade if you do not have a warm spare.  **We do not
-recommend in-place upgrades for Mainnet due to the risk of penalisation due to downtime in the case
-of a failed upgrade.**
+If a warm spare is unavailable, you may perform an in-place upgrade by stopping the Polymesh client, performing the necessary client upgrade, and restarting the node client. **We do not recommend in-place upgrades due to the risk of encountering a failure during the upgrade.**
 
 ## Backing Up a Node
 
-Since Polymesh is a public blockchain, you do not necessarily need to backup your nodes. You can
-always synchronize from scratch.
+Since Polymesh is a public blockchain, node backups are not strictly required, as you can always synchronize from scratch. However, syncing from scratch can be time-consuming. To minimize the delay between node creation and readiness, you may choose to back up the full blockchain database regularly.
 
-It takes quite a bit of time to synchronize a node from scratch.  To minimise the time between node
-creation and node readiness may choose to back up the full blockchain DB regularly.  This process
-does not need to be done on every node - a database backup performed on one node may be used
-on another node as long as they have the same setting for the `--pruning` parameter. Since
-operator nodes run with an implicit `--pruning archive` setting we recommend that you make that
-parameter explicit on all nodes so that they can share a single database backup.
+This does not need to be done for every node—a single database backup can be used across nodes, provided they use the same `--pruning` setting. Operator nodes run with an implicit `--pruning archive` setting, so we recommend explicitly setting this parameter on all nodes to allow sharing a single database backup.
 
-Backing up the database should be done on an offline node. A typical approach to do this would be:
+Database backups should be performed on an offline node. A typical approach is:
 
-* Stop the polymesh process on the backup node
-* Snapshot the database directory
-* Restart the polymesh process
-* Sync the database snapshot to offsite storage
+1. Stop the Polymesh process on the backup node.
+2. Snapshot the database directory.
+3. Restart the Polymesh process.
+4. Sync the database snapshot to offsite storage.
 
-The database snapshot contains no confidential information as long as **only** the
-`/<base path>/chains/mainnet/db` directory is backed up.
+The database snapshot contains no confidential information as long as **only** the `db` directory is backed up (e.g., `/<base path>/chains/mainnet/db`).
 
-Because of the nature of how the database is stored in files, stopping/starting the Polymesh
-process will create partial database files.  Since an excessive amount of files in a directory
-can cause performance issues we recommend to either limit snapshots to a daily frequency or
-to periodically reset the backup node's database to a fresh sync from the chain.
+Because the database uses file-based storage, stopping/starting Polymesh may create partial files. Excessive file accumulation can cause performance issues. We recommend limiting snapshots to daily intervals and periodically resetting the backup node's database with a fresh sync from the chain.
 
-## Auto Restarting Nodes
+## Auto-Restarting Nodes
 
-All your nodes should automatically restart in the case of an intermittent failure.
+Nodes should automatically restart in the event of an intermittent failure.
 
-For container-based nodes use your container runtime's features: `restart_policy.condition: any`
-for `docker-compose`, `restartPolicy: Always` for `kubernetes`, etc.
+### Container-Based Nodes
 
-If running the node as a binary we recommend using a supervisor process to ensure that the
-binary is restarted if terminated abnormally.  Most contemporary Linux distributions use
-`systemd` for this purpose, so we will focus on that, but you are not limited to using it
-if your infrastructure uses a different supervisor process.
+For container-based nodes, use your container runtime's features:
 
-To get started, create a new systemd unit file called `polymesh.service` in the
-`/etc/systemd/system/` directory. The following content should be in this unit file
+- `restart_policy.condition: any` for `docker-compose`
+- `restartPolicy: Always` for `kubernetes`
 
-```
-[Unit]
-Description=Polymesh Node
+### Binary-Based Nodes
 
-[Service]
-ExecStart=<path to polymesh binary> <polymesh parameters>
-Restart=always
-MemoryLimit=<2/3 the available system RAM, e.g. ~6GB for a system with 8GB RAM>
+For binary-based nodes, we recommend using a supervisor process. Most modern Linux distributions use `systemd`, which we will focus on, though other options are also viable.
 
-[Install]
-WantedBy=multi-user.target
-```
+#### Setting Up `systemd`
 
-To enable this service to automatically start on bootup run
+1. Create a new unit file called `polymesh.service` in `/etc/systemd/system/` with the following content:
 
-```
-systemctl daemon-reload && systemctl enable polymesh.service
-```
+   ```ini
+   [Unit]
+   Description=Polymesh Node
 
-You can also `start`, `stop`, `restart`, and check the `status` of the service with the respective `systemctl` commands, e.g.
+   [Service]
+   ExecStart=<path to polymesh binary> <polymesh parameters>
+   Restart=always
+   MemoryLimit=<2/3 of available system RAM, e.g., ~6GB for an 8GB system>
 
-```
-systemctl start polymesh.service
-```
+   [Install]
+   WantedBy=multi-user.target
+   ```
 
-The `journalctl` command can be used to read the systemd unit logs:
+2. Enable automatic startup with:
 
-```
-journalctl -u polymesh
-```
+   ```bash
+   systemctl daemon-reload && systemctl enable polymesh.service
+   ```
 
-See the man pages for `journalctl` for more details on how to use that command.
+3. Manage the service with commands such as:
+
+   ```bash
+   systemctl start polymesh.service
+   ```
+
+4. View logs using `journalctl`:
+
+   ```bash
+   journalctl -u polymesh
+   ```
+
+Refer to the `journalctl` man pages for additional details.
 
 ## Common Parameters for Running a Polymesh Node
 
-To run a polymesh node we recommend that you make use of the following options:
+Recommended options for running a Polymesh node include:
 
-* `--name <name>` (optional but recommended): Human-readable name of the nodes that is reported to the telemetry services
-* `--pruning archive`: Ensure that the node maintains a full copy of the blockchain
-* `--chain mainnet`: Run a mainnet node. If this parameter is excluded, the default is to connect to the testnet network
-* `--wasm-execution compiled`: Use compiled wasm to improve performance
-* `--base-path <path>` (optional): Specify where Polymesh will look for its DB files and keystore
-* `--db-cache <cache size in MiB>` (optional):  Improve the performance of the polymesh process by increasing its
-  in-memory cache above the default `128` MiB.  On a node with 8GB RAM available a reasonable value is in the
-  ballpark of `4096`.
+- `--name <name>` (optional): Human-readable name reported to telemetry services.
+- `--pruning archive`: Maintain a full blockchain copy.
+- `--chain mainnet`: Run a Mainnet node (default is Testnet if omitted).
+- `--wasm-execution compiled`: Use compiled WASM for better performance.
+- `--base-path <path>` (optional): Specify the location for DB files and the keystore.
+- `--db-cache <cache size in MiB>` (optional): Increase in-memory cache for better performance. On a node with 8GB of available RAM, a reasonable value is `4096`. (default `128` MiB)
+- `--db-max-total-wal-size <WAL database size in MiB>` (optional): Limit the total storage capacity that the database can use for WAL files. Recommended minimum value `1024`.
 
-Note - the `<name>` parameter above will be publicly visible when sending telemetry to Polymath's servers is enabled (on by default).
+**Note:** The `<name>` parameter will be publicly visible when telemetry is enabled (default setting).
+
+To see a full list of available options and their descriptions you can viewed by including the `--help` command.
 
 ## Running an Operator Node
 
-To run an operator node you will need to use the following options in additon to
-the [common parameters](#common-parameters-for-running-a-polymesh-node):
+To run an operator node, use the following in addition to the [common parameters](#common-parameters-for-running-a-polymesh-node):
 
-* `--operator`: Enable the operator flag on the node.
+- `--operator`: Enable operator mode.
 
-If you wish to connect to just a trusted set of other nodes, you can use the below flags to control this:
+To connect only to trusted peers, use these options:
 
-* `--reserved-only`: Only connect to reserved peers.
-* `--reserved-nodes`: This parameter takes a space separated list of libp2p peer addresses
-  in the form of `/ip4/<PEER_IP_ADDRESS>/tcp/30333/p2p/<PEER_NODE_IDENTITY>` or `/dns4/<PEER_RESOLVABLE_HOSTNAME>/tcp/30333/p2p/<PEER_NODE_IDENTITY>` to which the operator node will connect.  If left out then the peers must be provided via the `system_addReservedPeer` RPC method.  Failure to provide peers via either this parameter or the RPC method will cause the operator node to remain disconnected from the chain.
+- `--reserved-only`: Restrict connections to reserved peers.
+- `--reserved-nodes`: A space-separated list of libp2p peer addresses in the format `/ip4/<IP>/tcp/30333/p2p/<Node ID>` or `/dns4/<Hostname>/tcp/30333/p2p/<Node ID>`. If omitted, peers must be added via the `system_addReservedPeer` RPC method.
 
-Next we will generate the node's session keys.
+Next, generate the node's session keys.
 
-### Generating the session keys with access to the node's RPC port
+### Generating Session Keys with Access to the Node's RPC Port
 
 The `author_rotateKeys` method can be called against a running operator node to generate session keys.
 
-```
-$ curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "author_rotateKeys", "params":[]}' http://localhost:9933 | jq -r .result
+```bash
+curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "author_rotateKeys", "params":[]}' http://localhost:9933 | jq -r .result
 ```
 
 You will get an output similar to:
 
-```
+```plaintext
 0x2bd908203ae740b513f5907fdcc2e29a6bd2835618da917c03d2cfe65d96745\
 b54d59fe4dc5a106c130be0e677596eb023164c314d6fb5cc62ead1bcaee6a443\
 fe5df859fc1de372580abaa98a22fee962bcff580bf57138adc12955aa698a5fa\
 a923978d9c16014205af96da9d2e213083aefcb53982927a2756ffa83d81658
 ```
 
-Take note of this string: it contains the public portion of your session keys. The private
-keys are stored in a keystore on your operator server in the `/<base path>/chains/mainnet/keystore/`
-directory. The filenames of those keys are the public key portion of the respective session key, and
-the contents of the files are the private key portion.
+Take note of this string: it contains the **public** portion of your session keys. The private keys are stored in a keystore on your operator server in the `/<base path>/chains/<chain name>/keystore/` directory. The filenames of these keys are the public key portion of the respective session key, and the file contents represent the private key.
 
-**Please wait before activating your operator node until all
-your nodes are be fully synced with the chain and make sure that everything is production ready.**
+**Wait until your operator node is fully synced with the chain and production-ready before activation.**
 
-### Generating the session keys in containerised Polymesh nodes
+### Generating Session Keys in Containerized Polymesh Nodes
 
-Our official container images contain a small binary to rotate the session keys without requiring the installation
-of curl either in the container itself or in a sidecar.  This binary is located in `/usr/local/bin/rotate` and
-when executed will produce a newline-terminated string containing the public session keys used for bonding.
+Our official container images include a utility to rotate session keys without requiring additional tools like `curl` or exposing unsafe RPC methods outside the container. This utility is located at `/usr/local/bin/rotate`. Running it will produce a newline-terminated string containing the public session keys used for bonding.
 
-## Getting the Identity of a Node
+To run the utility inside your container:
 
-There are two simple methods for getting the public identity of a node:
-
-* From the operator node logs
-* Via an RPC call
-
-To get the node identity from the operator node logs start the node process and wait until the line containing the string `Local node identity` is printed:
-
+```bash
+docker exec <container_name> /usr/local/bin/rotate
 ```
-2020-03-02 11:19:20 Polymesh Node
-2020-03-02 11:19:20 version 2.0.0-a8676cab-x86_64-linux-gnu
-2020-03-02 11:19:20 by Polymath, 2018-2020
-2020-03-02 11:19:20 Chain specification: Local Testnet
-2020-03-02 11:19:20 Node name: dirty-vase-9822
-2020-03-02 11:19:20 Roles: AUTHORITY
-2020-03-02 11:19:20 Local node identity is: 12D3KoovCz7QpYsHMug7XLZynqKcueKVWWoTxFqBCRQ487YSrrDG
-2020-03-02 11:19:20 Starting BABE Authorship worker
-2020-03-02 11:19:20 Grafana data source server started at 127.0.0.1:9955
+
+See our [guide to running a node with Docker](https://developers.polymesh.network/polymesh-docs/network/running-a-node-docker/#generating-node-session-keys) for more details.
+
+### Getting the Identity of a Node
+
+When your node is first initialized a Local node identity is generated if none is present in your nodes `network` folder. The key used to generate it is stored so your nodes peer ID persists across restarts.
+
+There are two ways to obtain the public identity of a node:
+
+- From the operator node logs
+- Via an RPC call
+
+#### From the Operator Node Logs
+
+Start the node process and look for a line containing `Local node identity`:
+
+```plaintext
+2024-11-15 18:50:11 Reserved nodes: []
+2024-11-15 18:50:11 Polymesh Node
+2024-11-15 18:50:11 ✌️  version 7.0.0
+2024-11-15 18:50:11 ❤️  by PolymeshAssociation, 2017-2024
+2024-11-15 18:50:11 📋 Chain specification: Polymesh Testnet
+2024-11-15 18:50:11 🏷  Node name: woebegone-galley-5149
+2024-11-15 18:50:11 👤 Role: FULL
+2024-11-15 18:50:11 💾 Database: RocksDb at /var/lib/polymesh/chains/testnet/db/full
+2024-11-15 18:50:11 ⛓  Native runtime: polymesh_testnet-7000005 (polymesh_testnet-0.tx7.au1)
+2024-11-15 18:50:12 🔨 Initializing Genesis block/state (state: 0xcba3…bce0, header-hash: 0x2ace…d0d6)
+2024-11-15 18:50:12 👴 Loading GRANDPA authority set from genesis on what appears to be first startup.
+2024-11-15 18:50:13 👶 Creating empty BABE epoch changes on what appears to be first startup.
+2024-11-15 18:50:13 🏷  Local node identity is: 12D3KooWSDAHjBmA6j2GyBZPktEz2gLZmtJAc2bWnDV7eCCcgcbC
+2024-11-15 18:50:13 💻 Operating system: linux
 ...
 ```
 
-The above sample log tells us that that node's identity is `12D3KoovCz7QpYsHMug7XLZynqKcueKVWWoTxFqBCRQ487YSrrDG` -
-your node's identity will be different. Please save this for later and terminate the operator node process.
+In this example, the node's identity is `12D3KooWSDAHjBmA6j2GyBZPktEz2gLZmtJAc2bWnDV7eCCcgcbC`. Save this value, then terminate the process.
 
-To get the node identity via RPC call the `system_localPeerId` method and read the `result` value:
+#### Via RPC Call
 
+Call the `system_localPeerId` method and read the `result` value:
+
+```bash
+curl -s -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "system_localPeerId", "params":[]}' http://localhost:9933 | jq -r .result
 ```
-$ curl -s -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "system_localPeerId", "params":[]}' http://localhost:9933 | jq -r .result
-12D3KoovCz7QpYsHMug7XLZynqKcueKVWWoTxFqBCRQ487YSrrDG
-$
-```
 
-## Metrics and Monitoring
+### Metrics and Monitoring
 
-The recommended approach to getting metrics from the Polymesh node is via its built-in prometheus exporter endpoint.
-This endpoint can be scraped with a prometheus-compatible server or agent.
+The recommended method for obtaining metrics is through the node's built-in Prometheus exporter. By default, it binds to `localhost` on port `9615`. Use the `--prometheus-external` flag to expose the exporter port for network-based scraping, or deploy a local agent (e.g., `telegraf`, `grafana-cloud-agent`, or `victoria-metrics-agent`) to collect metrics.
 
-By default the prometheus exporter will
-bind to `localhost` on port `9615`.  You can expose the exporter port to additional interfaces with the
-`--prometheus-external` flag to enable network based scraping or use a local agent such as `telegraf`,
-`grafana-cloud-agent`, or `victoria-metrics-agent` to collect the metrics and push them to the prometheus server.
+#### Polymesh-Specific Metrics
 
 The basic health of a node can be assessed by monitoring the following metrics:
 
-| Metric | Used for | Operational Range | Additional Notes       |
-| ------ | -------- | ----------------- | ---------------------- |
-| `polymesh_block_height{status="finalized"}` | Finalised block number | +/- 3 from rest of the network | The block number for the rest of the network should be fetched from an external source. |
-| `polymesh_block_height{status="best"}` | Best block time | 6s +/- 2s | The block time is the difference between the best block timestamps.  The ideal mean time is 6 seconds, but some jitter (less than 2s) is acceptable due to network latency |
-| `polymesh_ready_transactions_number` | Transactions in ready queue | 0-150 | A healthy node should have zero or near-zero transactions in its ready queue.  A ready queue with a growing number of transactions can be an idicator of excessive node latency |
-| `polymesh_sub_libp2p_peers_count` | Number of peers | Number of peers | Operator nodes that are well connected with other operator nodes will experience lower on-chain lag compared to operator nodes with a limited set of operator peers.  Operator nodes should be connected to all other operator nodes with a maximum of three hops (two intermediate nodes between operators). |
+| Metric                                      | Purpose                     | Range                   | Notes                                                                                                                     |
+| ------------------------------------------- | --------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `polymesh_block_height{status="finalized"}` | Finalized block number      | ±3 from network average | Verify against the network block number using an external source.                                                         |
+| `polymesh_block_height{status="best"}`      | Best block time             | 6s ±2s                  | Ideal mean block time is 6 seconds; minor variations are normal.                                                          |
+| `polymesh_ready_transactions_number`        | Transactions in ready queue | 0–150                   | A growing queue may indicate node latency issues.                                                                         |
+| `polymesh_sub_libp2p_peers_count`           | Number of peers             | > Minimum peer count    | Nodes should maintain connectivity with other operator nodes, ideally with a maximum of three hops to any other operator. |
 
-We have published a Grafana dashboard to monitor the metrics exposed by the Polymesh node via its Prometheus exporter.
-You may download it [here](https://github.com/PolymathNetwork/polymesh-tools/tree/main/grafana). In order to use
-this dashboard you will need to scrape the metrics from the Prometheus exporter and collect them in a Prometheus
-server to which Grafana will connect.
+Guides for monitoring other Substrate-based chains, such as [Polkadot](https://wiki.polkadot.network/docs/maintain-guides-how-to-monitor-your-node), can be referenced for additional approaches to node monitoring.
 
-In addition to the Polymesh metrics you should also monitor basic node metrics available from generic node exporters or monitoring agents:
+#### General Node Metrics
 
-| Metric                    | Operational Range | Additional Notes |
-| ------------------------- | ----------------- | ---------------- |
-| Free disk space           | 30 GB+ or > 20% volume capacity | There should always be some free disk space for the Polymesh node to consume. |
-| Free RAM                  | 1 GB+ | Spikes in RAM usage are acceptable but on average, there should be at least 1 GB of free RAM available on the system for the node to consume.|
-| CPU usage                 | 5-50% (overall) | This is the overall CPU usage and not per core usage. Occasional spikes above 50% are acceptable but more cores should be added if the CPU usage continuously stays above 50%. |
-| Network connectivity      | >0.1 mbps bandwidth | Nodes should be online and reachable at all times. If they are being DDoS’d and can not respond to queries, new nodes should be deployed, or the operators connectivity limited to trusted nodes. |
+In addition to Polymesh-specific metrics, you should monitor basic node health metrics available from generic node exporters or monitoring agents:
 
-## Bonding POLYX
+| Metric               | Range                   | Notes                                                                                                                   |
+| -------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Free disk space      | 30 GB+ or >20% capacity | Ensure sufficient free space for the node to function properly.                                                         |
+| Free RAM             | 1 GB+                   | Spikes are acceptable, but an average of 1 GB of free RAM should remain available.                                      |
+| CPU usage            | 5–50% (overall)         | If usage consistently exceeds 50%, consider increasing CPU resources.                                                   |
+| Network connectivity | >0.1 Mbps bandwidth     | Maintain stable connectivity. If under attack (e.g., DDoS), deploy new nodes or restrict connectivity to trusted peers. |
 
-**You should ensure that your Polymesh nodes have synced with the chain and are healthy before proceeding with
-this section. Failure to do so may result in operator penalties.**
+### Bonding POLYX
 
-To become an operator on Polymesh, you need to bond (lock) some POLYX in the system. The
-account that stores your bonded funds is called the stash account and the account that decides
-what to do with the bonded funds is called the controller account.
+**Ensure your Polymesh nodes are fully synced and healthy before proceeding. Failure to do so may result in operator penalties.**
 
-**It is highly recommended that you make your controller and stash accounts be two separate accounts.** For this,
-you will create two accounts and make sure each of them has at least enough funds to pay the fees for making transactions.
-Keep most of your funds in the stash account since it is meant to be the custodian of your staking funds.
+To become an operator on Polymesh, you must bond (lock) some POLYX. The account holding the bonded funds is called the **stash account**, while the account managing these funds is the **controller account**.
 
-*For Testnet you can use the same account for the Stash account and the Controller account.*
+> **Recommendation:** Use separate accounts for your controller and stash accounts. Ensure both accounts have enough POLYX to cover transaction fees, while keeping the majority of your funds in the stash account, as it serves as the custodian of your staking funds.
 
-To bond your funds,
+**Note:** The steps in the following sections can also be completed in a single batched transaction by selecting the **[+ Validator]** button. The instructions below focus on each individual step.
 
-* Go to [Staking section](https://mainnet-app.polymesh.network/#/staking/actions)
-* Click on "Account Actions"
-* Click on the "+”Stash” button
+#### Steps to Bond Funds
 
-![Bonding preferences](images/22079145-bec7-4e47-9154-88b0e3dfa964.png "Bonding preferences")
+1. Navigate to the [Staking section](https://mainnet-app.polymesh.network/#/staking/actions).
+2. Click **Account Actions**.
+3. Select the **[+ Stash]** button.
 
-* **Stash account**: Select your Stash account. In this example, we will bond 100 milli POLYX - make
-    sure that your Stash account contains at least this much. You can, of course, stake
-    more than this.
-* **Controller account**: Select the Controller account created earlier. This account will also need a small
-    amount of POLYX in order to start and stop validating.
-* **Value bonded**: How much POLYX from the Stash account you want to bond/stake. You
-    do not need to bond all of the POLYX in that account. Also, note that you can
-    always bond more POLYX later. However, withdrawing any bonded amount requires
-    to wait for the duration of the unbonding period.
-* **Payment destination**: The account where the rewards from validating are sent.
-    Once everything is filled in properly, click Bond and sign the transaction with your Stash account.
-    After a few seconds, you should see an `ExtrinsicSuccess` message. You should now see a
-    new card with all your accounts (note: you may need to refresh the screen). The bonded amount
-    on the right corresponds to the funds bonded by the Stash account.
+   ![Bonding preferences](images/bonding-preferences.png 'Bonding preferences')
 
-## Setting Session Keys
+4. **Complete the following fields:**
 
-You need to tell the Polymesh blockchain what your session keys are. This is what associates your
-operator with your Controller account. If you ever want to switch your operator node, you just need
-to change your active session keys to the new session keys and wait for the change to become
-active in the next session.
+   - **Stash account**: Choose your [stash account](#stash-key). Ensure it has a balance exceeding the amount of POLYX you plan to bond. You can bond additional POLYX later if needed.
+   - **Controller account**: Select your [controller account](#controller-key). This account requires a small amount of POLYX for managing validation.
+   - **Value bonded**: Specify the amount of POLYX to bond/stake from the stash account. Note that withdrawing bonded POLYX requires waiting for the unbonding period to elapse. At the time of writing, a minimum of 50,000 POLYX is required for operator staking.
+   - **Payment destination**: Specify where validation rewards should be sent.
 
-Remember the session keys we generated while setting up the operator node? It’s now time to use
-those keys.
+5. Click **Bond** and sign the transaction using your stash account. After a few seconds, an `ExtrinsicSuccess` message should appear. Refresh the page if necessary to view your new bonded account details.
 
-To set your Session Keys,
+   ![Stash bonded](images/stash-bonded.png 'Stash bonded')
 
-* Go to [Staking section](https://mainnet-app.polymesh.network/#/staking/actions)
-* Click on "Account Actions"
-* Click on the "Session Key" button on the bonding account you generated earlier
-* Enter the result of `author_rotateKeys` that we saved earlier in the field and click "Set Session Key"
-* Submit this extrinsic and you are now ready to start validating
+### Setting Session Keys
 
-![Set session key](images/edf14234-3474-43ad-ba3e-910ada7bca52.png "Set session key")
+Session keys link your operator node to your controller account. If you switch operator nodes, you can update these keys to reflect the new setup, which will take effect in the next session.
 
-![Set session key](images/aad1824d-d1b9-41e7-9490-2ebf82171c24.png "Set session key")
+Use the session keys generated during your operator node setup.
 
-## Activating your Operator Node
+#### Steps to Set Session Keys
 
-Before moving forward, please make sure that everything is set up properly via the telemetry we
-set up earlier. Once this step is complete, an improper setup may lead to penalties.
+1. Go to the [Staking section](https://mainnet-app.polymesh.network/#/staking/actions).
+2. Click **Account Actions**.
+3. Locate your bonded account and click **Session Key**.
+4. Paste the `author_rotateKeys` result ([generated earlier](#generating-session-keys-with-access-to-the-nodes-rpc-port)) into the provided field.
+5. Click **Set Session Key** and submit the extrinsic.
 
-If everything looks good, go ahead and click on "Validate" in the UI.
+   ![Set session key](images/set-session-keys.png 'Set session key')
 
-![Validate](images/87e444b5-4f94-4408-95c5-b63169fad5b9.png "Validate")
+Once the transaction succeeds, your session keys will be updated, and you’re ready to proceed with validation.
 
-Enter the reward commission percentage and click on Validate.
+### Activating Your Operator Node
 
-![Validate](images/eddb483b-2869-4843-8407-bcc329569558.png "Validate")
+Before activation, ensure your setup is verified via telemetry. Improper configurations may result in penalties.
 
-**Congratulations!** Your operator has been added in the queue and will become active in the next
-session.
+#### Steps to Activate
 
-## Stop Being an Operator
+1. In the UI, click **Validate**.
 
-To stop being an operator on the Polymesh chain,
+   ![Validate](images/validate.png 'Validate')
 
-* Go to [Staking > Account Actions](https://mainnet-app.polymesh.network/#/staking/actions)
-* Click on "Stop Validating" against your bonding account
+2. Enter your reward commission percentage, then click **Validate**. At the time of writing, the maximum allowable commission is capped at 10%.
 
-You will be removed from the operator set in the next session. You can then safely terminate all
-your operator nodes. **failure to terminate safely (e.g. by terminating
-before the next session) may result in penalties.**
+   ![Validator Preferences](images/validator-preferences.png 'Validator Preferences')
 
+**Congratulations!** Your operator has been added to the queue of available operators. It will be eligible for election in the next operator cycle and will become active at the start of the subsequent era. On Mainnet, this process may take up to 29 hours from setting your validator preferences.
+
+### Stopping Operator Activity
+
+To stop operating as a validator:
+
+1. Navigate to [Staking > Account Actions](https://mainnet-app.polymesh.network/#/staking/actions).
+2. Locate your bonded account and click **Stop**.
+3. Sign the transaction to confirm the action.
+
+This action removes your node from the list of operators available for election. Your node will remain active for the current era but will become inactive at the start of the next era following its last election.
+
+**Important:** Only stop your node client **after** it is no longer active in the current era to avoid penalties.
+
+#### Reward Destination Considerations
+
+If your reward destination is set to your **Stash account (increase the amount at stake)**:
+
+- Wait until the last reward payment has been received **before** starting the unbonding process.
+- Alternatively, change the reward destination to **Stash account (do not increase the amount at stake)** before unbonding to ensure the final reward payment is not bonded.
+
+By doing so, you can ensure the smooth receipt of all pending rewards without interruptions.
 
 ## Glossary
 
-|Term|Definition|
-|----|----------|
-|Controller key      |Key used to manage bonded funds, vote with bonded funds and do similar actions on chain.|
-|Equivocation        |When an operator node commits to two or more conflicting states.|
-|Era                 |An Era is a whole number of sessions. It is the period over which operator and nominator sets are calculated, and rewards paid out.|
-|Immortal transaction|A transaction that is valid at any time.|
-|Operator node       |Operator nodes are permissioned network participants responsible for producing new blocks and finalising the block chain.|
-|Sentry node         |Sentry nodes are full archive nodes which operator nodes use as a proxy to the wider network, limiting the operator nodes exposure to the public internet and providing data redundancy.|
-|Session             |A session is a period of time that has a constant set of operators. Operators can only join or exit the operator set at a session change.|
-|Session keys        |Keys that an operator node uses to sign data needed for consensus.|
-|Stash key           |Account where the operator rewards are sent.|
-|Warm spare node     |A node that is online and synced but not configured to be an operator.  A warm spare requires manual intervention to become an active operator.|
-
-
+| **Term**                 | **Definition**                                                                                                                |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Equivocation**         | Occurs when an operator node commits to two or more conflicting states.                                                       |
+| **Era**                  | A fixed number of sessions. It determines operator and nominator sets and distributes rewards. (24 hours on Polymesh mainnet) |
+| **Immortal transaction** | A transaction valid at any time. (note consideration must be given to account nonce when using an immortal transaction)       |
+| **Operator node**        | Permissioned network participants responsible for producing new blocks and finalizing the blockchain.                         |
+| **Session**              | A fixed period with a constant set of operators. Operators can only join or leave the set at the start of a session.          |
+| **Session keys**         | Keys used by operator nodes to sign consensus-related data.                                                                   |
+| **Warm spare node**      | A synced node ready to replace an active operator manually.                                                                   |
